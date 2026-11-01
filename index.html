@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辦公室 Excel 萬能工具箱 | 雙表比對・跨格式資料搬移・排程衝突與資產管理</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- SheetJS (讀取與匯出 Excel .xlsx / .xls / .csv) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Mammoth.js (讀取 Word .docx 表格與文字) -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- 左側導覽列 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <h1 style="font-size:1.1rem;margin:0;color:#fff;">🏢 辦公室萬能工具箱</h1>
+        <button class="badge-version" onclick="toggleChangelogModal(true)" title="點擊查看版本更新歷程">v1.2.0</button>
+      </div>
+      <p>專為各類辦公室打造的 Excel 自動化與跨格式資料處理平台（支援行政、專案、企業與機構通用）</p>
+      <div class="version-info-box" onclick="toggleChangelogModal(true)">
+        <span>🏷️ 版本：<strong>v1.2.0</strong> (2026.11)</span>
+        <span class="version-link">更新說明 ⓘ</span>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-section-title">核心 Excel 資料工具</li>
+      <li class="nav-item active" onclick="switchTab('diff', this)">
+        <span>📊</span>
+        <span>雙 Excel 智慧比對器</span>
+        <span class="badge">最常用</span>
+      </li>
+      <li class="nav-item" onclick="switchTab('extract', this)">
+        <span>📋</span>
+        <span>網頁 / Word 資料搬移</span>
+        <span class="badge">跨格式</span>
+      </li>
+
+      <li class="nav-section-title">辦公室例行業務專區</li>
+      <li class="nav-item" onclick="switchTab('course-ops', this)">
+        <span>🏢</span>
+        <span>排程衝突・工時・資產</span>
+        <span class="badge">例行事務</span>
+      </li>
+
+      <li class="nav-section-title">Wand.Tools 智慧輔助</li>
+      <li class="nav-item" onclick="switchTab('wand-ai', this)">
+        <span>🪄</span>
+        <span>Excel 公式與清洗魔杖</span>
+        <span class="badge">AI 輔助</span>
+      </li>
+
+      <li class="nav-section-title">說明手冊與 AI 客製化</li>
+      <li class="nav-item" onclick="switchTab('guide', this)">
+        <span>📖</span>
+        <span>使用手冊 ＆ Gemini 客製指南</span>
+        <span class="badge">必讀</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div>🔒 <strong>100% 本機端處理</strong>：所有檔案、員工資料與業務表冊皆在瀏覽器內運算，不外傳伺服器。</div>
+      <div style="margin-top:8px;">
+        參考：辦公室實務應用・<a href="https://wand.tools/zh-TW/" target="_blank">Wand.Tools</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 右側主要內容區 -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-title">
+        <h2 id="page-title">📊 雙 Excel 智慧比對器</h2>
+        <p id="page-desc">自動比對兩份工作表、名冊、庫存表或報表之「新增、刪除、異動儲存格」並一鍵匯出</p>
+      </div>
+      <div class="top-actions" style="flex-wrap:wrap;">
+        <a href="manual.html" target="_blank" class="btn btn-outline btn-sm" style="text-decoration:none;" title="另開獨立分頁查看圖解手冊與匯出 PDF">📖 圖解使用手冊 (PDF)</a>
+        <button class="btn btn-outline btn-sm" onclick="toggleChangelogModal(true)">🏷️ v1.2.0 更新說明</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleCloudModal(true)">☁️ Google Drive 設定</button>
+        <button class="btn btn-outline btn-sm" onclick="exportWorkspaceSnapshot()">💾 匯出進度快照</button>
+        <label class="btn btn-outline btn-sm" style="margin:0;">
+          📂 載入進度快照
+          <input type="file" accept=".json" style="display:none" onchange="importWorkspaceSnapshot(this.files[0])" />
+        </label>
+        <button class="btn btn-demo btn-sm" onclick="loadDemoDiff()">✨ 載入對照範例</button>
+      </div>
+    </header>
+
+    <div class="content-container">
+      <!-- 跨地移動辦公 (在家 / 機構辦公室 / 公司) 與 Google Drive 狀態列 -->
+      <div class="cloud-bar">
+        <div class="cloud-status">
+          <span>🌐 <strong>移動辦公模式 (在家 / 機構辦公室 / 公司)</strong>：</span>
+          <span id="sync-status-text" style="color:#0f766e;">所有變更自動保存於本機，亦可一鍵從 Google Drive 匯入試算表或同步工作台快照</span>
+        </div>
+        <div class="cloud-actions">
+          <button class="btn btn-sm btn-outline" onclick="saveWorkspaceToLocal(false)">📌 立即暫存進度</button>
+          <button class="btn btn-sm btn-primary" onclick="toggleCloudModal(true)">☁️ Google Drive 雲端同步與部署指南</button>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 1: 雙 Excel 智慧比對器 -->
+      <!-- ================================================================= -->
+      <section id="tab-diff" class="tab-panel active">
+        <div class="grid-2">
+          <!-- 檔案 A -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📁 原始基準檔 (Excel A：例如「初版資料 / 舊報表」)</div>
+            </div>
+            <label class="dropzone" id="dropzone-a" for="upload-excel-a">
+              <div class="dropzone-icon">📄</div>
+              <div id="file-label-a">點擊上傳或直接拖曳本機/Google Drive 檔案至此 (.xlsx / .xls / .csv)</div>
+              <input type="file" id="upload-excel-a" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0], 'A')" />
+              <div id="sheet-select-wrap-a"></div>
+            </label>
+            <div class="gdrive-input-group">
+              <input type="text" id="gdrive-url-diff-a" placeholder="☁️ 或貼上 Google 試算表 (Google Sheets) 連結直接匯入..." />
+              <button class="btn btn-sm btn-outline" onclick="importFromGoogleDriveUrl('diff-A')">雲端匯入 A</button>
+            </div>
+          </div>
+
+          <!-- 檔案 B -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📁 最新比對檔 (Excel B：例如「修訂定稿 / 新報表」)</div>
+            </div>
+            <label class="dropzone" id="dropzone-b" for="upload-excel-b">
+              <div class="dropzone-icon">📑</div>
+              <div id="file-label-b">點擊上傳或直接拖曳本機/Google Drive 檔案至此 (.xlsx / .xls / .csv)</div>
+              <input type="file" id="upload-excel-b" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0], 'B')" />
+              <div id="sheet-select-wrap-b"></div>
+            </label>
+            <div class="gdrive-input-group">
+              <input type="text" id="gdrive-url-diff-b" placeholder="☁️ 或貼上 Google 試算表 (Google Sheets) 連結直接匯入..." />
+              <button class="btn btn-sm btn-outline" onclick="importFromGoogleDriveUrl('diff-B')">雲端匯入 B</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 比對設定列 -->
+        <div class="card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div>
+              <label for="diff-key-col">🔑 對齊主鍵欄位 (例如：項目代碼 / 人員姓名 / 編號)</label>
+              <select id="diff-key-col" style="width:240px;" onchange="runExcelDiff()"></select>
+            </div>
+            <div style="padding-top:18px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="diff-ignore-space" checked onchange="runExcelDiff()" />
+                自動忽略前後多餘空白與換行符號
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="runExcelDiff()">🔍 立即執行比對</button>
+            <button class="btn btn-secondary" onclick="exportDiffExcel()">📥 匯出差異報告 Excel</button>
+          </div>
+        </div>
+
+        <!-- 統計小卡 -->
+        <div class="grid-4" style="margin-bottom:20px;">
+          <div class="stat-card amber" style="cursor:pointer" onclick="setDiffFilter('modified')">
+            <span class="label">✏️ 欄位內容異動 (點擊篩選)</span>
+            <span class="value" id="stat-modified">0</span>
+          </div>
+          <div class="stat-card green" style="cursor:pointer" onclick="setDiffFilter('added')">
+            <span class="label">➕ 新增項目 (點擊篩選)</span>
+            <span class="value" id="stat-added">0</span>
+          </div>
+          <div class="stat-card red" style="cursor:pointer" onclick="setDiffFilter('removed')">
+            <span class="label">➖ 已刪除 / 移除項目 (點擊篩選)</span>
+            <span class="value" id="stat-removed">0</span>
+          </div>
+          <div class="stat-card blue" style="cursor:pointer" onclick="setDiffFilter('all')">
+            <span class="label">✔️ 完全相同 (點擊顯示全部)</span>
+            <span class="value" id="stat-same">0</span>
+          </div>
+        </div>
+
+        <!-- 差異明細表 -->
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+            <div class="card-title">📋 逐欄比對明細表（黃底代表有異動的儲存格：原值 ➔ 新值）</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="diff-search-input" placeholder="🔍 搜尋代碼/名稱/人員/地點..." style="width:230px;" oninput="onDiffSearch(this.value)" />
+              <button class="btn btn-sm btn-outline" onclick="setDiffFilter('all')">顯示全部</button>
+              <button class="btn btn-sm btn-outline" onclick="setDiffFilter('diff-only')">只看差異 (新增/刪除/異動)</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="diff-thead"></thead>
+              <tbody id="diff-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: 網頁 / Word / 公文 資料搬移器 -->
+      <!-- ================================================================= -->
+      <section id="tab-extract" class="tab-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 步驟 1：從網頁、Word、公文或 Email 貼上內容</div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-demo" onclick="loadExtractDemo('html')">範例1：網頁/Word表格</button>
+                <button class="btn btn-sm btn-demo" onclick="loadExtractDemo('text')">範例2：Word調補課公文</button>
+              </div>
+            </div>
+            <p style="font-size:0.84rem;color:#64748b;margin-bottom:10px;">
+              您可以直接從 <strong>行政管理部網頁、Word 表格、PDF 或 Email</strong> 複製後按 <code>Ctrl+V</code> 貼入下方，或是直接上傳 <code>.docx</code> Word 檔：
+            </p>
+            <div id="rich-paste-box" class="paste-editor" contenteditable="true"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px;">
+              <div style="display:flex;gap:14px;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
+                  <input type="checkbox" id="ext-clean-space" checked onchange="parsePastedContent()" /> 清除隱藏換行與多餘空白
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
+                  <input type="checkbox" id="ext-half-width" checked onchange="parsePastedContent()" /> 全形英數自動轉半形
+                </label>
+              </div>
+              <label class="btn btn-sm btn-outline" style="margin:0;">
+                📂 或直接上傳 Word (.docx)
+                <input type="file" accept=".docx" style="display:none" onchange="handleDocxUpload(this.files[0])" />
+              </label>
+            </div>
+            <div class="gdrive-input-group">
+              <input type="text" id="gdrive-url-extract" placeholder="☁️ 或貼上 Google 試算表 / Google 文件連結直接擷取..." />
+              <button class="btn btn-sm btn-outline" onclick="importFromGoogleDriveUrl('extract')">從 Google Drive 擷取</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">✨ 步驟 2：即時結構化預覽（點擊儲存格可直接修改）</div>
+              <span class="pill pill-added" id="ext-count-badge">共擷取 0 筆</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" onclick="exportExtractedExcel()">📥 匯出成乾淨 Excel (.xlsx)</button>
+              <button class="btn btn-outline btn-sm" onclick="sendExtractedToDiff('A')">➡️ 送入比對器【檔案 A】</button>
+              <button class="btn btn-outline btn-sm" onclick="sendExtractedToDiff('B')">➡️ 送入比對器【檔案 B】</button>
+            </div>
+            <div class="table-wrap" style="max-height:310px;">
+              <table>
+                <thead id="ext-thead"></thead>
+                <tbody id="ext-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: 辦公室例行事務工作台 (排程會議衝突、人員工時核算、資產設備盤點) -->
+      <!-- ================================================================= -->
+      <section id="tab-course-ops" class="tab-panel">
+        <!-- 排程衝突與工時上傳區 -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h3 style="font-size:1.05rem;">🗓️ 排程 / 會議室衝突檢測 ＆ 人員工時與加班津貼自動核算</h3>
+              <p style="font-size:0.84rem;color:#64748b;">支援欄位：<code>項目/項目代碼、名稱、人員/教師、職稱/職等、排定時段(如一234)、使用場地/教室、時數、減免時數</code></p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <label class="btn btn-outline" style="margin:0;">
+                📂 匯入本機/Google Drive 排程或工時 Excel
+                <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleScheduleUpload(this.files[0])" />
+              </label>
+              <button class="btn btn-demo" onclick="initCourseOps();showToast('已還原辦公室排程與資產設備清冊範例！')">🔄 還原範例資料</button>
+            </div>
+          </div>
+          <div class="gdrive-input-group">
+            <input type="text" id="gdrive-url-schedule" placeholder="☁️ 或貼上 Google 試算表 (Google Sheets) 排程總表連結，一鍵在線上檢測衝突與核算工時..." />
+            <button class="btn btn-sm btn-primary" onclick="importFromGoogleDriveUrl('schedule')">☁️ 從 Google Drive 匯入排程總表</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- 場地與人員排程衝突預警 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🚨 會議室/場地與人員排程衝突預警</div>
+              <span class="pill pill-removed">發現 <span id="conflict-count">0</span> 筆衝突</span>
+            </div>
+            <div class="table-wrap" style="max-height:260px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>衝突類型</th>
+                    <th>衝突時段 / 對象</th>
+                    <th>重疊排程明細</th>
+                  </tr>
+                </thead>
+                <tbody id="conflict-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 人員工時與超額/加班核算 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">👨‍💼 人員工時 / 任務工時與加班津貼核計表</div>
+              <span style="font-size:0.78rem;color:#64748b;">標準時數：依職級與基本工時規定自動核算</span>
+            </div>
+            <div class="table-wrap" style="max-height:260px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>人員/教師</th>
+                    <th>職稱/職等</th>
+                    <th>標準時數</th>
+                    <th>減免時數</th>
+                    <th>應達時數</th>
+                    <th>實際總時數</th>
+                    <th>核算結果</th>
+                    <th>明細項目</th>
+                  </tr>
+                </thead>
+                <tbody id="hours-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 辦公室資產設備、行政工具與消耗品盤點管理 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧰 辦公室資產設備檢查 ＆ 行政耗材/工具盤點表</div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <select id="inv-filter-cat" style="width:160px;" onchange="renderInventoryTable()">
+                <option value="all">全部管理類別</option>
+                <option value="辦公設備">辦公設備</option>
+                <option value="行政工具">行政工具</option>
+                <option value="耗材與物品">耗材與物品</option>
+              </select>
+              <button class="btn btn-sm btn-secondary" onclick="exportInventoryExcel()">📥 匯出盤點清冊 Excel</button>
+            </div>
+          </div>
+
+          <!-- 快速新增列 -->
+          <div style="display:grid;grid-template-columns: 1.2fr 1.5fr 1.8fr 0.8fr 1fr auto;gap:10px;margin-bottom:14px;background:#f8fafc;padding:12px;border-radius:8px;">
+            <select id="new-inv-cat">
+              <option value="辦公設備">辦公設備</option>
+              <option value="行政工具">行政工具</option>
+              <option value="耗材與物品">耗材與物品</option>
+            </select>
+            <input type="text" id="new-inv-loc" placeholder="存放地點/會議室/樓層 (如 行政大樓 2F)" />
+            <input type="text" id="new-inv-name" placeholder="物品/設備/工具名稱" />
+            <input type="number" id="new-inv-qty" placeholder="應有數量" value="1" min="1" />
+            <input type="text" id="new-inv-owner" placeholder="保管/盤點人員" />
+            <button class="btn btn-primary" onclick="addInventoryItem()">➕ 新增項目</button>
+          </div>
+
+          <div class="table-wrap" style="max-height:300px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>編號</th>
+                  <th>管理類別</th>
+                  <th>存放地點 / 會議室</th>
+                  <th>物品 / 設備 / 工具名稱</th>
+                  <th>應有數量</th>
+                  <th>實盤數量 (可改)</th>
+                  <th>狀態</th>
+                  <th>保管/盤點人員</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 4: Wand.Tools 風格 Excel 萬能公式與清洗魔杖 -->
+      <!-- ================================================================= -->
+      <section id="tab-wand-ai" class="tab-panel">
+        <div class="grid-2">
+          <!-- 左欄：互動式公式生成器 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🪄 辦公室專屬 Excel 公式自動產生器 (參考 Wand.Tools)</div>
+            </div>
+            <p style="font-size:0.86rem;color:#64748b;margin-bottom:14px;">
+              不必背複雜的函數！只要選擇您要處理的辦公室業務情境與欄位代號，立即生成可直接貼入 Excel 的公式：
+            </p>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <label>1. 選擇您想完成的任務情境</label>
+                <select id="wand-task-type" onchange="generateCustomFormula()">
+                  <option value="xlookup">🔍 跨表查找對應資料（如：用編號去總表抓「所屬部門」或「負責人」）</option>
+                  <option value="countif">✅ 核對兩份名單是否存在（如：檢查新提報名冊是否已在總表）</option>
+                  <option value="sumifs">➕ 按條件自動加總（如：統計同一位人員在各專案的「總工時/總費用」）</option>
+                  <option value="clean">🧹 徹底清除從網頁/Word貼上後的「隱藏空白與換行符號」</option>
+                </select>
+              </div>
+
+              <div class="grid-3">
+                <div>
+                  <label>查找值儲存格</label>
+                  <input type="text" id="wand-col-lookup" value="A2" oninput="generateCustomFormula()" />
+                </div>
+                <div>
+                  <label>來源工作表名稱</label>
+                  <input type="text" id="wand-sheet-name" value="業務總表" oninput="generateCustomFormula()" />
+                </div>
+                <div>
+                  <label>要抓回/加總的欄位</label>
+                  <input type="text" id="wand-col-return" value="F:F" oninput="generateCustomFormula()" />
+                </div>
+              </div>
+
+              <div style="margin-top:6px;">
+                <label>✨ 為您生成的 Excel / Google Sheets 公式：</label>
+                <div class="formula-box">
+                  <code id="custom-formula-output">=XLOOKUP(A2, 業務總表!A:A, 業務總表!F:F, "查無資料")</code>
+                  <button class="btn btn-sm btn-primary" onclick="copyText(document.getElementById('custom-formula-output').textContent)">📋 複製公式</button>
+                </div>
+                <p id="custom-formula-explain" style="font-size:0.84rem;color:#0f766e;margin-top:8px;font-weight:600;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右欄：辦公室常用公式速查字典 -->
+          <div>
+            <div class="card" style="margin-bottom:14px;">
+              <label for="formula-search">🔎 搜尋辦公室常用公式關鍵字（例如：查找、工時、合併、VLOOKUP、清洗）</label>
+              <input type="text" id="formula-search" placeholder="輸入關鍵字立即篩選公式..." oninput="renderFormulaCards(this.value)" />
+              <div class="chip-group">
+                <span class="chip" onclick="document.getElementById('formula-search').value='查找';renderFormulaCards('查找')">跨表查找</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='加總';renderFormulaCards('加總')">條件加總</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='合併';renderFormulaCards('合併')">文字字串合併</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='空白';renderFormulaCards('空白')">網頁Word空白清理</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='';renderFormulaCards('')">顯示全部</span>
+              </div>
+            </div>
+
+            <div id="formula-cards-container" style="max-height:460px;overflow-y:auto;padding-right:4px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 5: 詳細載用說明 & Gemini / Antigravity 客製化改裝指南 -->
+      <!-- ================================================================= -->
+      <section id="tab-guide" class="tab-panel">
+        <div class="card" style="background:linear-gradient(135deg, #1e3a8a 0%, #0f766e 100%);color:#fff;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+            <div>
+              <div style="display:inline-block;background:rgba(255,255,255,0.2);padding:2px 10px;border-radius:99px;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+                📌 系統版本 v1.2.0 (2026.11) 官方操作手冊
+              </div>
+              <h3 style="font-size:1.35rem;margin-bottom:6px;">🏢 辦公室 Excel 萬能工具箱：圖解使用手冊 ＆ AI 客製指南</h3>
+              <p style="font-size:0.92rem;opacity:0.92;line-height:1.6;max-width:720px;">
+                本系統為 <strong>100% 純前端無伺服器架構 (Zero-Backend)</strong>，所有資料皆在您的電腦瀏覽器內運算。您可直接在線上使用、下載單一檔隨身帶，或開啟獨立分頁列印/另存為 PDF 操作手冊！
+              </p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="manual.html" target="_blank" class="btn btn-primary" style="background:#38bdf8;color:#0f172a;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+                📄 開啟獨立分頁手冊 (支援另存 PDF)
+              </a>
+              <button class="btn btn-outline" style="border-color:#fff;color:#fff;" onclick="toggleChangelogModal(true)">
+                🏷️ 查看版本歷程
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 圖解四大功能操作 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🗺️ 各功能圖解操作流程 (視覺導覽引導)</div>
+            <a href="manual.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">📄 查看完整手冊分頁</a>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <!-- 圖解 1: 雙 Excel 比對 -->
+            <div class="diagram-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="color:#1e40af;font-size:0.96rem;font-weight:700;">📊 1. 雙 Excel 智慧對比器操作流程</h4>
+                <span class="badge" style="background:#eff6ff;color:#1e40af;padding:2px 8px;border-radius:99px;font-size:0.75rem;">最常用</span>
+              </div>
+              <div class="flow-steps">
+                <div class="flow-step">
+                  <span class="flow-step-num">1</span>
+                  <div class="flow-step-title">載入基準檔 A</div>
+                  <div class="flow-step-desc">拖入舊版 Excel 或貼上 Google 試算表連結</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">2</span>
+                  <div class="flow-step-title">載入對照檔 B</div>
+                  <div class="flow-step-desc">拖入新版 Excel 或貼上 Google 試算表連結</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">3</span>
+                  <div class="flow-step-title">設定對齊主鍵</div>
+                  <div class="flow-step-desc">選擇編號、學號、代碼或姓名</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">4</span>
+                  <div class="flow-step-title">分析與匯出</div>
+                  <div class="flow-step-desc">綠(新增)・黃(異動)・紅(刪除)・一鍵匯出報告</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 圖解 2: Word / 網頁文字搬移 -->
+            <div class="diagram-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="color:#0f766e;font-size:0.96rem;font-weight:700;">📋 2. Word / 網頁 / 公文資料搬移器流程</h4>
+                <span class="badge" style="background:#f0fdfa;color:#0f766e;padding:2px 8px;border-radius:99px;font-size:0.75rem;">跨格式清洗</span>
+              </div>
+              <div class="flow-steps">
+                <div class="flow-step">
+                  <span class="flow-step-num">1</span>
+                  <div class="flow-step-title">複製非結構文字</div>
+                  <div class="flow-step-desc">複製網頁表格、公文、Word 或直接上傳 .docx</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">2</span>
+                  <div class="flow-step-title">貼入解析編輯區</div>
+                  <div class="flow-step-desc">防爆版排版保護，自動去 CHAR(160) 隱藏空白</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">3</span>
+                  <div class="flow-step-title">即時結構化預覽</div>
+                  <div class="flow-step-desc">自動辨識欄位並提供儲存格即點即改</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">4</span>
+                  <div class="flow-step-title">匯出或比對</div>
+                  <div class="flow-step-desc">下載乾淨 Excel 或一鍵送入雙表比對器</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 圖解 3: 排程衝突與資產 -->
+            <div class="diagram-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="color:#b45309;font-size:0.96rem;font-weight:700;">🏢 3. 辦公室排程衝突、工時與資產管理流程</h4>
+                <span class="badge" style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:0.75rem;">例行事務</span>
+              </div>
+              <div class="flow-steps">
+                <div class="flow-step">
+                  <span class="flow-step-num">1</span>
+                  <div class="flow-step-title">匯入總排程表 / 排程</div>
+                  <div class="flow-step-desc">支援時段欄位（如一234、二56）自動拆解</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">2</span>
+                  <div class="flow-step-title">秒抓排程衝突與重複</div>
+                  <div class="flow-step-desc">偵測同教室衝突或同人員分身衝突</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">3</span>
+                  <div class="flow-step-title">自動核算超額工時</div>
+                  <div class="flow-step-desc">依職級基準扣抵減免，核算加班超時加班</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">4</span>
+                  <div class="flow-step-title">資產與設備盤點</div>
+                  <div class="flow-step-desc">現場核對實盤數、備註狀態並產出報表</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 三種載用方式 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🚀 一、三種載用與移動辦公方式（在家 / 辦公室 / 差旅皆可用）</div>
+          </div>
+          <div class="grid-3">
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:#f8fafc;">
+              <span class="pill pill-added" style="margin-bottom:8px;">方式 1：免安裝直接開網頁</span>
+              <h4 style="margin-bottom:6px;">🌐 GitHub Pages 線上版</h4>
+              <p style="font-size:0.85rem;color:#475569;line-height:1.5;margin-bottom:10px;">
+                不用下載任何程式，只要有瀏覽器，打開網址即可立刻使用所有功能：
+              </p>
+              <a href="https://zhijaysun0915.github.io/course-office-toolkit/" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;">🔗 開啟線上版工具箱</a>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:#f8fafc;">
+              <span class="pill pill-modified" style="margin-bottom:8px;">方式 2：放進 Google Drive 隨身帶</span>
+              <h4 style="margin-bottom:6px;">☁️ 單一 HTML 隨身檔 + 雲端試算表</h4>
+              <p style="font-size:0.85rem;color:#475569;line-height:1.5;margin-bottom:10px;">
+                可下載「單一檔案隨身版 (.html)」放進隨身碟或 Google Drive，任何電腦雙擊即可離線開啟：
+              </p>
+              <a href="https://drive.google.com/drive/folders/1Q4dfyDApDq8CB7saNcIXDtoo5ouU8RDy" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none;">📁 開啟 Google Drive 專區</a>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:#f8fafc;">
+              <span class="pill pill-same" style="margin-bottom:8px;">方式 3：Git Clone 完整原始碼</span>
+              <h4 style="margin-bottom:6px;">🐙 下載原始碼自訂修改</h4>
+              <p style="font-size:0.85rem;color:#475569;line-height:1.5;margin-bottom:10px;">
+                適合想要修改欄位、調整計算規則或交給 AI 助手改裝的使用者：
+              </p>
+              <a href="https://github.com/zhijaysun0915/course-office-toolkit" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">📦 前往 GitHub 儲存庫</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 四大模組操作教學 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🛠️ 二、四大功能模組詳細操作步驟</div>
+          </div>
+          <div class="grid-2" style="gap:16px;font-size:0.88rem;line-height:1.6;">
+            <div style="border-left:4px solid var(--primary);padding-left:12px;">
+              <h4 style="color:var(--primary);margin-bottom:4px;">1. 📊 雙 Excel 智慧比對器</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li>在左、右兩側分別上傳新舊兩份 Excel（`.xlsx/.xls/.csv`），或直接貼上 <strong>Google 試算表分享連結</strong>點擊「雲端匯入」。</li>
+                <li>在「🔑 對齊主鍵欄位」選擇用來對齊的唯一欄位（例如：<code>編號</code>、<code>代碼</code>、<code>姓名</code>、<code>品名</code>）。</li>
+                <li>點擊「🔍 立即執行比對」，系統會自動用顏色標出：<strong>綠底（新增）</strong>、<strong>紅底（刪除/移除）</strong>、<strong>黃底（有異動的儲存格：原值 ➔ 新值）</strong>。</li>
+                <li>點擊「📥 匯出差異報告 Excel」即可下載完整核對結果。</li>
+              </ol>
+            </div>
+
+            <div style="border-left:4px solid var(--secondary);padding-left:12px;">
+              <h4 style="color:var(--secondary);margin-bottom:4px;">2. 📋 網頁 / Word / 公文資料搬移器</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li>直接從系統網頁、Word 文件、Email 或公文選取表格或文字，按 <code>Ctrl+C</code> 複製後貼入左側編輯框（或直接上傳 <code>.docx</code> 檔）。</li>
+                <li>支援「<code>欄位：內容 | 欄位：內容</code>」格式的公文或申請單自動拆欄。</li>
+                <li>自動清除導致 Excel 公式對不到的 <code>CHAR(160)</code> 隱藏空白與換行。</li>
+                <li>右側預覽表格可直接點擊修改文字，並可「匯出成乾淨 Excel」或「一鍵送入雙表比對器」。</li>
+              </ol>
+            </div>
+
+            <div style="border-left:4px solid var(--accent);padding-left:12px;">
+              <h4 style="color:#b45309;margin-bottom:4px;">3. 🏢 辦公室例行事務（排程衝突・工時・資產）</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li>匯入含有 <code>項目/項目代碼、名稱、人員/教師、職稱/職等、排定時段(如一234)、使用場地/教室、時數、減免時數</code> 的排程 Excel 或 Google 試算表。</li>
+                <li>系統自動將時段拆解為單節/單小時區段，秒抓出<strong>同一時段同會議室/教室</strong>或<strong>同一人員同時段兩個排程</strong>的衝突。</li>
+                <li>自動依職級基本工時/鐘點與減免時數核算超時加班或津貼。</li>
+                <li>下方提供「辦公室設備檢查 & 資產工具盤點表」，可直接改實盤數量並匯出清冊。</li>
+              </ol>
+            </div>
+
+            <div style="border-left:4px solid #7c3aed;padding-left:12px;">
+              <h4 style="color:#6d28d9;margin-bottom:4px;">4. ☁️ 跨地移動辦公（在家 / 辦公室 / 差旅接續進度）</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li><strong>Google 試算表連線</strong>：將 Google 試算表權限設為「知道連結的任何人可檢視」，貼上網址即可直接抓資料。</li>
+                <li><strong>進度快照放雲端</strong>：下班前點擊右上角「💾 匯出進度至 Google Drive」存成 <code>.json</code>；換電腦後點擊「📂 從 Google Drive 載入進度」即可 100% 還原工作台。</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemini / Antigravity 客製化教學 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 三、如何在您自己的 Gemini / Antigravity 中客製化修改本專案？</div>
+            <span class="pill pill-added">開放原始碼・AI 友善架構</span>
+          </div>
+
+          <p style="font-size:0.9rem;color:#334155;margin-bottom:14px;line-height:1.6;">
+            每個企業、機構辦公室或單位的 Excel 報表欄位名稱、工時或核算規則可能不同。您不需要懂寫程式，只要把本專案拉進您的 <strong>Antigravity IDE</strong> 或 <strong>Gemini</strong>，直接用中文下指令就能改造成您單位專屬的版本：
+          </p>
+
+          <div style="background:#0f172a;color:#e2e8f0;padding:16px;border-radius:10px;font-family:Consolas,monospace;font-size:0.86rem;margin-bottom:16px;line-height:1.6;">
+            <div style="color:#38bdf8;font-weight:700;margin-bottom:6px;"># 步驟 1：在 Antigravity 終端機下載本專案並設為工作區 (Workspace)</div>
+            <div>git clone https://github.com/zhijaysun0915/course-office-toolkit.git</div>
+            <div>cd course-office-toolkit</div>
+          </div>
+
+          <h4 style="font-size:0.95rem;margin-bottom:10px;color:#0f172a;">✨ 步驟 2：直接複製以下提示詞 (Prompt) 貼給您的 Gemini / Antigravity：</h4>
+
+          <div class="grid-2" style="gap:12px;">
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 A：修改人員基本工時或加班超額規則</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「請幫我修改 <code>js/app.js</code> 裡面的基本標準工時規定：我們單位的主管為 8 小時、工程師 8 小時、專案約聘 6 小時、顧問講師 4 小時，並新增一個『兼任專案人員』類別。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('請幫我修改 js/app.js 裡面的基本標準工時規定：我們單位的主管為 8 小時、工程師 8 小時、專案約聘 6 小時、顧問講師 4 小時，並新增一個「兼任專案人員」類別。')">📋 複製這段 AI 指令</button>
+            </div>
+
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 B：配合您單位內部系統匯出的 Excel 欄位</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「我們單位系統匯出的 Excel 欄位名稱叫做『專案代號、任務名稱、負責人、排定時段、執行地點、預估工時』，請幫我修改 <code>js/app.js</code> 與 <code>js/demo-data.js</code> 以相容這些欄位。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('我們單位系統匯出的 Excel 欄位名稱叫做「專案代號、任務名稱、負責人、排定時段、執行地點、預估工時」，請幫我修改 js/app.js 與 js/demo-data.js 以相容這些欄位。')">📋 複製這段 AI 指令</button>
+            </div>
+
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 C：新增您部門專屬的例行追蹤表</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「請在『辦公室例行事務』頁面新增一個『專案里程碑完成進度追蹤表』，並支援從 Excel 匯入與篩選尚未完成的專案項目。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('請在「辦公室例行事務」頁面新增一個「專案里程碑完成進度追蹤表」，並支援從 Excel 匯入與篩選尚未完成的專案項目。')">📋 複製這段 AI 指令</button>
+            </div>
+
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 D：重新打包成單一 HTML 隨身檔</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「我已經修改完功能了，請幫我把 <code>index.html</code>、<code>css/style.css</code>、<code>js/demo-data.js</code> 與 <code>js/app.js</code> 重新合併打包成最新的單一 HTML 隨身檔並推上 GitHub。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('我已經修改完功能了，請幫我把 index.html、css/style.css、js/demo-data.js 與 js/app.js 重新合併打包成最新的單一 HTML 隨身檔並推上 GitHub。')">📋 複製這段 AI 指令</button>
+            </div>
+          </div>
+
+          <!-- 專案結構對照表 -->
+          <div style="margin-top:16px;">
+            <h4 style="font-size:0.92rem;margin-bottom:8px;">📂 專案檔案結構對照表（方便您或 AI 快速定位修改位置）</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>檔案路徑</th>
+                    <th>功能說明</th>
+                    <th>常見客製化修改項目</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>index.html</code></td>
+                    <td>網頁主畫面結構與各頁籤介面</td>
+                    <td>增減按鈕、修改標題、新增部門專屬頁籤</td>
+                  </tr>
+                  <tr>
+                    <td><code>js/app.js</code></td>
+                    <td>核心邏輯（雙表比對、網頁Word擷取、排程衝突與鐘點計算、Google Drive 匯入）</td>
+                    <td>調整排程衝突時間解析格式、修改教師基準工時標準、自訂匯出 Excel 格式</td>
+                  </tr>
+                  <tr>
+                    <td><code>js/demo-data.js</code></td>
+                    <td>內建範例資料與常用 Excel 公式字典</td>
+                    <td>替換成貴單位的預設範例資料、新增辦公室常用 Excel 公式範本</td>
+                  </tr>
+                  <tr>
+                    <td><code>css/style.css</code></td>
+                    <td>視覺配色、表格高亮樣式與手機平板 RWD 響應式排版</td>
+                    <td>調整機構辦公室代表色、字體大小、列印版面樣式</td>
+                  </tr>
+                  <tr>
+                    <td><code>google-apps-script/Code.gs</code></td>
+                    <td>Google Drive 私人雲端同步後端腳本</td>
+                    <td>部署於您個人的 Google Apps Script，實現免公開連結的私人雲端存檔</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- 雲端移動辦公與 Google Drive 設定彈窗 -->
+  <div id="cloud-modal" class="modal-backdrop" onclick="if(event.target===this) toggleCloudModal(false)">
+    <div class="modal-card">
+      <div class="card-header">
+        <div class="card-title">☁️ Google Drive 整合 ＆ 跨地移動辦公 (在家 / 機構辦公室 / 公司) 指南</div>
+        <button class="btn btn-sm btn-outline" onclick="toggleCloudModal(false)">✕ 關閉</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:0.88rem;line-height:1.55;">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px;border-radius:8px;">
+          <h4 style="color:#166534;margin-bottom:4px;">✅ 方式一：從 Google Drive 直接匯入 Excel / Google 試算表</h4>
+          <p>在各模組的「☁️ 貼上 Google 試算表連結」輸入框中，直接貼上 Google Drive 上的試算表連結（權限設為「知道連結的任何人可檢視」），即可在<strong>辦公室、家中或差旅地點</strong>直接抓入最新排程與名單，免重複下載檔案！</p>
+        </div>
+
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:12px;border-radius:8px;">
+          <h4 style="color:#1e40af;margin-bottom:4px;">✅ 方式二：工作台快照檔 (.json) 放進 Google Drive 跨電腦接續</h4>
+          <p>在辦公室做到一半要換電腦？點擊右上角 <strong>「💾 匯出進度至 Google Drive」</strong> 存進您的 Google 雲端硬碟資料夾；回到家或公司打開網頁，點擊 <strong>「📂 從 Google Drive 載入進度」</strong>，所有比對結果、排程表與設備盤點立即 100% 還原！</p>
+        </div>
+
+        <div style="background:#fffbeb;border:1px solid #fde68a;padding:12px;border-radius:8px;">
+          <h4 style="color:#92400e;margin-bottom:6px;">🚀 方式三：連接個人 Google Apps Script 雲端硬碟資料庫（一鍵雙向同步）</h4>
+          <p style="margin-bottom:8px;">若您想直接一鍵讀寫私人 Google Drive（不需下載快照檔），可貼上部署於您個人 Google Drive 的 Apps Script 網址：</p>
+          <input type="text" id="gas-webapp-url" placeholder="https://script.google.com/macros/s/xxxxxx/exec" style="margin-bottom:8px;" />
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm btn-primary" onclick="syncWithGoogleAppsScript('push')">☁️ 備份目前進度至 Google Drive</button>
+            <button class="btn btn-sm btn-secondary" onclick="syncWithGoogleAppsScript('pull')">📥 從 Google Drive 拉取最新進度</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 版本更新歷程彈窗 -->
+  <div id="changelog-modal" class="modal-backdrop" onclick="if(event.target===this) toggleChangelogModal(false)">
+    <div class="modal-card">
+      <div class="card-header">
+        <div class="card-title">🏷️ 辦公室萬能工具箱 - 版本歷程與更新資訊</div>
+        <button class="btn btn-sm btn-outline" onclick="toggleChangelogModal(false)">✕ 關閉</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:0.88rem;line-height:1.6;max-height:70vh;overflow-y:auto;padding-right:6px;">
+        <!-- v1.2.0 -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:14px;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="color:#1e40af;font-size:1rem;">🚀 v1.2.0（當前最新版本）</strong>
+            <span style="font-size:0.75rem;background:#1e40af;color:#fff;padding:2px 8px;border-radius:99px;">2026-11-02</span>
+          </div>
+          <ul style="padding-left:18px;color:#1e293b;margin:0;">
+            <li><strong>📖 圖解使用手冊全面升級</strong>：新增視覺化操作圖解與獨立分頁 <code>manual.html</code>，支援 A4 一鍵列印與另存為 PDF。</li>
+            <li><strong>🛡️ 修復 Word/網頁長文字排版被切開 Bug</strong>：採用 CSS Grid <code>minmax(0, 1fr)</code> 與 <code>overflow-wrap: anywhere</code>，徹底解決貼上長網址或 Linux 指令造成右側卡片與按鈕看不到的問題。</li>
+            <li><strong>🏷️ 新增版本管理與更新紀錄彈窗</strong>：隨時掌握系統更新要點與最新改進。</li>
+            <li><strong>🏢 全站介面通用化調整</strong>：符合各大企業、機關機構與企業辦公室各類辦公室通例。</li>
+          </ul>
+        </div>
+
+        <!-- v1.1.0 -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:14px;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="color:#0f766e;font-size:0.95rem;">✨ v1.1.0 雲端移動辦公</strong>
+            <span style="font-size:0.75rem;background:#0f766e;color:#fff;padding:2px 8px;border-radius:99px;">2026-11-01</span>
+          </div>
+          <ul style="padding-left:18px;color:#334155;margin:0;">
+            <li><strong>☁️ Google Drive 深度整合</strong>：支援貼上試算表分享網址直接即時讀取資料。</li>
+            <li><strong>💾 跨裝置進度快照 (.json)</strong>：在家與辦公室雙向無縫接續作業進度。</li>
+            <li><strong>📦 純前端單一檔 (.html)</strong>：內建所有樣式與函式庫，離線即可隨點隨開。</li>
+            <li><strong>🌐 GitHub Pages 上線</strong>：無伺服器直接在線免安裝使用。</li>
+          </ul>
+        </div>
+
+        <!-- v1.0.0 -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:14px;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="color:#475569;font-size:0.95rem;">🎉 v1.0.0 核心版本首發</strong>
+            <span style="font-size:0.75rem;background:#475569;color:#fff;padding:2px 8px;border-radius:99px;">2026-10-31</span>
+          </div>
+          <ul style="padding-left:18px;color:#475569;margin:0;">
+            <li><strong>📊 雙 Excel 智慧對比器</strong>：支援欄位自動對齊、綠黃紅三色高亮標註與匯出。</li>
+            <li><strong>📋 Word/網頁/公文非結構化資料搬移</strong>：自動剔除 <code>CHAR(160)</code> 不可見空白。</li>
+            <li><strong>🏢 例行事務三大功能</strong>：排程排程衝突自動檢測、工時超額核算、辦公室資產工具盤點。</li>
+            <li><strong>🪄 Wand.Tools 智慧輔助</strong>：自然語言即時轉 Excel 實用公式。</li>
+          </ul>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+          <a href="manual.html" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;">📄 開啟完整使用手冊 (PDF)</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右下角通知容器 -->
+  <div id="toast-container"></div>
+
+  <script src="js/demo-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

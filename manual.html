@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辦公室萬能工具箱 - 完整圖解使用手冊 & 離線 PDF 指南 (v1.2.0)</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #eff6ff;
+      --secondary: #0d9488;
+      --secondary-light: #f0fdfa;
+      --accent: #f59e0b;
+      --accent-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.65;
+      padding: 0;
+    }
+
+    /* 頂部控制列 (列印時隱藏) */
+    .action-header {
+      background: #0f172a;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .action-header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-print {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+    .btn-print:hover { background: #7dd3fc; }
+
+    .btn-back {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+    /* 手冊主容器 */
+    .container {
+      max-width: 960px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* 手冊封面標頭 */
+    .manual-hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f766e 100%);
+      color: #fff;
+      padding: 36px 32px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .manual-hero h2 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .manual-hero p {
+      font-size: 1.05rem;
+      opacity: 0.92;
+      max-width: 760px;
+      line-height: 1.6;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 14px;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-meta-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 99px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* 目錄導覽 */
+    .toc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .toc-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .toc-item {
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+      font-size: 0.92rem;
+      color: #334155;
+      text-decoration: none;
+      border-left: 3px solid var(--primary);
+      transition: all 0.15s;
+    }
+
+    .toc-item:hover {
+      background: #eff6ff;
+      color: var(--primary);
+      transform: translateX(3px);
+    }
+
+    /* 章節卡片 */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      page-break-inside: avoid;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title .badge {
+      font-size: 0.78rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    /* 圖解視覺化流程圖組件 */
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .diagram-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-steps {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      flex: 1;
+      min-width: 170px;
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      text-align: center;
+      position: relative;
+    }
+
+    .flow-step-num {
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .flow-step-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .flow-step-desc {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    .flow-arrow {
+      color: #94a3b8;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    /* 亮點提要卡片 */
+    .callout {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .callout-info {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      color: #1e3a8a;
+    }
+
+    .callout-success {
+      background: var(--secondary-light);
+      border-left: 4px solid var(--secondary);
+      color: #065f46;
+    }
+
+    .callout-warning {
+      background: var(--accent-light);
+      border-left: 4px solid var(--accent);
+      color: #92400e;
+    }
+
+    /* 比較表格預覽示意 */
+    .mock-diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.88rem;
+    }
+
+    .mock-diff-table th, .mock-diff-table td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .mock-diff-table th {
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    .row-added {
+      background: #dcfce7 !important;
+      color: #166534;
+      font-weight: 600;
+    }
+
+    .row-removed {
+      background: #fee2e2 !important;
+      color: #991b1b;
+      font-weight: 600;
+    }
+
+    .cell-modified {
+      background: #fef08a !important;
+      color: #854d0e;
+      font-weight: 600;
+    }
+
+    /* 程式碼 / 指令塊 */
+    pre, code {
+      font-family: "Consolas", "Monaco", "Courier New", monospace;
+    }
+
+    code {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+
+    /* 列印與 PDF 輸出樣式最佳化 */
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+      }
+      .action-header, .no-print {
+        display: none !important;
+      }
+      .container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .manual-hero {
+        background: #1e3a8a !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .section-card {
+        border: 1px solid #ccc;
+        box-shadow: none;
+        padding: 18px 20px;
+        margin-bottom: 24px;
+        page-break-inside: avoid;
+      }
+      .diagram-box, .mock-diff-table th, .mock-diff-table td {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .flow-step {
+        border: 1px solid #999;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      @page {
+        size: A4;
+        margin: 1.5cm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部列印 / 導覽控制列 -->
+  <header class="action-header no-print">
+    <h1>
+      <span>🏢</span>
+      <span>辦公室萬能工具箱 - 官方使用手冊 & 圖解指南</span>
+      <span style="font-size:0.75rem;background:#38bdf8;color:#0f172a;padding:2px 8px;border-radius:99px;font-weight:700;">v1.2.0</span>
+    </h1>
+    <div class="action-buttons">
+      <button class="btn btn-print" onclick="window.print()">
+        <span>🖨️</span>
+        <span>列印 / 另存為 PDF</span>
+      </button>
+      <a href="index.html" class="btn btn-back">
+        <span>⬅️</span>
+        <span>回到工具箱主系統</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 封面 -->
+    <div class="manual-hero">
+      <h2>🏢 辦公室 Excel 萬能工具箱 使用手冊</h2>
+      <p>專為各類機關機構與企業辦公室、企業與行政專案打造的零後端 (Zero-Backend) 智慧資料自動化處理平台。本手冊提供各模組的圖解操作流程、常見問題排查與 AI 客製化二開指南。</p>
+      <div class="hero-meta">
+        <span class="hero-meta-badge">📌 系統版本：v1.2.0</span>
+        <span class="hero-meta-badge">🔒 隱私安全：100% 本機瀏覽器運算（資料不外傳）</span>
+        <span class="hero-meta-badge">☁️ 跨地支援：Google Drive + 離線隨身單一檔</span>
+        <span class="hero-meta-badge">📅 發布日期：2026 年 11 月</span>
+      </div>
+    </div>
+
+    <!-- 目錄導覽 -->
+    <div class="toc-card no-print">
+      <div class="toc-title">
+        <span>📑</span>
+        <span>快速章節導覽</span>
+      </div>
+      <div class="toc-grid">
+        <a href="#ch1" class="toc-item">一、雙 Excel 智慧對比器（新/修/刪）</a>
+        <a href="#ch2" class="toc-item">二、Word / 網頁 / 公文資料搬移器</a>
+        <a href="#ch3" class="toc-item">三、辦公室排程排程衝突、工時與資產管理</a>
+        <a href="#ch4" class="toc-item">四、Wand.Tools 公式與資料清洗魔杖</a>
+        <a href="#ch5" class="toc-item">五、跨地移動辦公（Google Drive 整合）</a>
+        <a href="#ch6" class="toc-item">六、Gemini / Antigravity AI 客製化教學</a>
+        <a href="#ch7" class="toc-item">七、版本歷史與常見問答 (FAQ)</a>
+      </div>
+    </div>
+
+    <!-- 第一章：雙 Excel 智慧對比器 -->
+    <section id="ch1" class="section-card">
+      <div class="section-title">
+        <span>📊 第一章：雙 Excel 智慧比對器</span>
+        <span class="badge">最常用功能</span>
+      </div>
+
+      <p>在日常辦公中，最繁瑣的工作莫過於比對「加退選前後名單」、「廠商報價單新舊版本」、「部門預算核銷對帳表」或「人事員工異動清冊」。本工具提供欄位智慧對齊與三色直覺標示：</p>
+
+      <!-- 圖解流程 -->
+      <div class="diagram-box">
+        <div class="diagram-title">🔍 雙表對比圖解操作流程</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="flow-step-num">1</span>
+            <div class="flow-step-title">載入基準檔 A</div>
+            <div class="flow-step-desc">拖入舊版本 Excel 或貼上 Google 試算表連結</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">2</span>
+            <div class="flow-step-title">載入對照檔 B</div>
+            <div class="flow-step-desc">拖入新版本 Excel 或貼上 Google 試算表連結</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">3</span>
+            <div class="flow-step-title">選擇對齊主鍵</div>
+            <div class="flow-step-desc">下拉選擇「學號、編號、品名或代碼」</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">4</span>
+            <div class="flow-step-title">分析與匯出</div>
+            <div class="flow-step-desc">秒級呈現差異並一鍵匯出高亮報告 Excel</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 顏色高亮說明 -->
+      <h4 style="margin:16px 0 8px;font-size:1rem;">🎨 差異顏色對照範例：</h4>
+      <table class="mock-diff-table">
+        <thead>
+          <tr>
+            <th>差異狀態</th>
+            <th>學號 / 編號</th>
+            <th>姓名</th>
+            <th>選修狀態 / 部門</th>
+            <th>異動註記說明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-added">
+            <td>🟢 新增項目</td>
+            <td>B110001</td>
+            <td>陳小美</td>
+            <td>已加選 (資訊系)</td>
+            <td>檔案 B 有，但檔案 A 不存在的新增資料</td>
+          </tr>
+          <tr>
+            <td>🟡 內容修改</td>
+            <td>B110002</td>
+            <td>林大寶</td>
+            <td><span class="cell-modified">企管系 ➔ 財金系</span></td>
+            <td>主鍵相同，但該儲存格數值或文字已被變更</td>
+          </tr>
+          <tr class="row-removed">
+            <td>🔴 刪除項目</td>
+            <td>B110003</td>
+            <td>黃阿明</td>
+            <td>已退選</td>
+            <td>檔案 A 有，但在檔案 B 中已被移除</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-info">
+        <strong>💡 實務小技巧：</strong>
+        若比對兩張欄位順序不同的表，系統會自動比對表頭名稱並對應，不需要手動調整 Excel 的欄位排列順序！
+      </div>
+    </section>
+
+    <!-- 第二章：Word / 網頁資料搬移器 -->
+    <section id="ch2" class="section-card">
+      <div class="section-title">
+        <span>📋 第二章：Word / 網頁 / 公文資料搬移器</span>
+        <span class="badge">跨格式神隊友</span>
+      </div>
+
+      <p>行政人員常需將機構辦公室公文、內部 ERP 網頁表格、Word 會議紀錄甚至 Email 申請單內的資訊貼入 Excel。傳統做法直接複製常導致儲存格爆開、換行錯位，或帶有難以排查的 <code>CHAR(160)</code> 隱藏非斷行空白。</p>
+
+      <!-- 圖解流程 -->
+      <div class="diagram-box">
+        <div class="diagram-title">🔄 資料萃取與清洗圖解流程</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="flow-step-num">1</span>
+            <div class="flow-step-title">複製網頁或 Word</div>
+            <div class="flow-step-desc">按 Ctrl+C 複製或直接上傳 .docx 檔案</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">2</span>
+            <div class="flow-step-title">貼入解析框</div>
+            <div class="flow-step-desc">支援超長文字、網址、多重符號自動斷行保護</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">3</span>
+            <div class="flow-step-title">智慧結構化</div>
+            <div class="flow-step-desc">自動辨識冒號鍵值對、Tab 分隔與全形半形轉化</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">4</span>
+            <div class="flow-step-title">直接編輯/匯出</div>
+            <div class="flow-step-desc">預覽點擊修改、一鍵匯出或送入雙表比對器</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-success">
+        <strong>🛡️ v1.2.0 版面防破保護：</strong>
+        左側編輯區已全面升級為現代 CSS 彈性防護（<code>overflow-wrap: anywhere</code> 與 <code>minmax(0, 1fr)</code>）。即使貼上極長的 Linux 指令、Dell 支援網址或超長公文代號，右側的「即時結構化預覽」卡片與匯出按鈕依然 100% 穩固顯示，絕不被擠出螢幕！
+      </div>
+    </section>
+
+    <!-- 第三章：辦公室排程衝突、工時與資產管理 -->
+    <section id="ch3" class="section-card">
+      <div class="section-title">
+        <span>🏢 第三章：辦公室排程衝突、工時與資產管理</span>
+        <span class="badge">行政例行業務</span>
+      </div>
+
+      <p>針對機關機構與企業辦公室與各型辦公室的三大高頻日常業務（排程/排程表衝突檢測、人員工時/鐘點核算、固定資產與工具盤點），本系統整合為一站式操作：</p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">⚡ 排程衝突自動檢測機制</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="flow-step-num">A</span>
+            <div class="flow-step-title">場地 / 會議室排程衝突</div>
+            <div class="flow-step-desc">同一時段（如週二 3-4 節）同一教室排了兩門不同專案</div>
+          </div>
+          <div class="flow-arrow">⚡</div>
+          <div class="flow-step">
+            <span class="flow-step-num">B</span>
+            <div class="flow-step-title">人員 / 教師分身排程衝突</div>
+            <div class="flow-step-desc">同一負責人在同一時段被安排至兩處不同地點</div>
+          </div>
+          <div class="flow-arrow">⚡</div>
+          <div class="flow-step">
+            <span class="flow-step-num">C</span>
+            <div class="flow-step-title">自動標記與警示</div>
+            <div class="flow-step-desc">在衝突清單中精確提示衝突項目並支援一鍵篩選</div>
+          </div>
+        </div>
+      </div>
+
+      <h4 style="margin:16px 0 8px;font-size:1rem;">💼 人員工時 / 鐘點核算標準表：</h4>
+      <p style="font-size:0.9rem;color:#475569;margin-bottom:10px;">系統內建通用職等標準，自動計算：<code>應計工時 = 總排定工時 - 減免工時</code>，並精確標出<strong>超額加班/超時加班</strong>：</p>
+      <ul style="padding-left:20px;font-size:0.88rem;color:#334155;line-height:1.7;">
+        <li><strong>教授 / 一級主管</strong>：標準工時 8 小時（超時自動計算超額）</li>
+        <li><strong>副教授 / 二級主管</strong>：標準工時 9 小時</li>
+        <li><strong>助理教授 / 專案主管</strong>：標準工時 9 小時</li>
+        <li><strong>講師 / 專員</strong>：標準工時 10 小時</li>
+        <li><strong>兼任 / 外部顧問</strong>：標準工時 0 小時（所有時數全額計入津貼）</li>
+      </ul>
+    </section>
+
+    <!-- 第四章：Wand.Tools 公式魔杖 -->
+    <section id="ch4" class="section-card">
+      <div class="section-title">
+        <span>🪄 第四章：Wand.Tools Excel 公式與清洗魔杖</span>
+        <span class="badge">AI 自然語言輔助</span>
+      </div>
+
+      <p>參考知名生產力工具 <a href="https://wand.tools/zh-TW/" target="_blank">Wand.Tools</a> 的智慧設計，行政人員不需要死記死背複雜的 <code>INDEX+MATCH</code>、<code>XLOOKUP</code> 或 <code>LAMBDA</code>，只要輸入白話需求即可產生：</p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">💡 公式生成圖解</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="flow-step-num">1</span>
+            <div class="flow-step-title">輸入白話需求</div>
+            <div class="flow-step-desc">「找 A 欄代碼如果等於 B 欄就回傳 C 欄」</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">2</span>
+            <div class="flow-step-title">智慧語意匹配</div>
+            <div class="flow-step-desc">比對辦公室常用 40+ 種高頻公式庫</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+          <div class="flow-step">
+            <span class="flow-step-num">3</span>
+            <div class="flow-step-title">一鍵複製公式</div>
+            <div class="flow-step-desc">帶有詳細參數中文解說，直接貼入 Excel</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第五章：跨地移動辦公 -->
+    <section id="ch5" class="section-card">
+      <div class="section-title">
+        <span>☁️ 第五章：跨地移動辦公（機構辦公室 / 在家 / 差旅無縫接續）</span>
+        <span class="badge">Google Drive 整合</span>
+      </div>
+
+      <p>面對現代混合辦公（Hybrid Work）趨勢，您可能白天在辦公室核對進度，晚上在家中筆電繼續作業。本工具提供三種靈活儲存模式：</p>
+
+      <div class="callout callout-info">
+        <strong>🌐 模式一：GitHub Pages 雲端隨開即用</strong><br />
+        網址：<a href="https://zhijaysun0915.github.io/course-office-toolkit/" target="_blank">https://zhijaysun0915.github.io/course-office-toolkit/</a><br />
+        無需安裝任何軟體或 Python 環境，只要有瀏覽器（Chrome, Edge, Safari）點開即用！
+      </div>
+
+      <div class="callout callout-success">
+        <strong>💾 模式二：Google Drive 快照同步接續</strong><br />
+        下班前點擊右上角「💾 匯出進度至 Google Drive」，系統會將目前所有工作表狀態打包為 <code>.json</code> 快照存入您的 Google Drive。<br />
+        換電腦後，點擊「📂 從 Google Drive 載入進度」選取該檔，所有對比狀態與編輯內容瞬間 100% 還原！
+      </div>
+
+      <div class="callout callout-warning">
+        <strong>📁 模式三：完全離線單一檔案隨身跑 (.html)</strong><br />
+        專案內附 <code>辦公室萬能工具箱_移動辦公單一檔.html</code>，將所有 JavaScript、CSS 與第三方函式庫內嵌。即使在完全沒有網路連線的內網或封閉機房，連點兩下就能直接執行！
+      </div>
+    </section>
+
+    <!-- 第六章：AI 客製化教學 -->
+    <section id="ch6" class="section-card">
+      <div class="section-title">
+        <span>🤖 第六章：如何在您的 Gemini / Antigravity 中客製化修改</span>
+        <span class="badge">開放原始碼</span>
+      </div>
+
+      <p>本專案採現代模組化設計（HTML + CSS + 純 JavaScript），沒有複雜的編譯步驟。任何人只要把程式碼交給 <strong>Gemini</strong> 或 <strong>Google Antigravity</strong>，即可透過對話隨心所欲客製化：</p>
+
+      <div class="code-block">
+# 1. 複製專案庫到本機
+git clone https://github.com/zhijaysun0915/course-office-toolkit.git
+cd course-office-toolkit
+      </div>
+
+      <h4 style="margin:16px 0 8px;font-size:0.95rem;">💬 常用客製化 Prompt 提示詞範本：</h4>
+      <div class="callout callout-info" style="margin-bottom:10px;">
+        <strong>客製提示詞 1（修改單位工時標準）：</strong><br />
+        「請幫我修改 <code>js/app.js</code> 中的工時標準：主管 8 小時、技術人員 7 小時、顧問 0 小時，並新增『約聘研究員』基本工時 6 小時。」
+      </div>
+      <div class="callout callout-info" style="margin-bottom:10px;">
+        <strong>客製提示詞 2（新增自訂 Excel 匯出欄位）：</strong><br />
+        「請在雙 Excel 比對器的匯出報表功能中，新增一欄『差異類型』與『比對時間戳記』。」
+      </div>
+      <div class="callout callout-info">
+        <strong>客製提示詞 3（重新打包單一檔）：</strong><br />
+        「我已經完成了修改，請將 <code>index.html</code>、<code>css/style.css</code>、<code>js/demo-data.js</code> 與 <code>js/app.js</code> 重新打包成最新的單一檔 <code>辦公室萬能工具箱_移動辦公單一檔.html</code> 並推送到 GitHub。」
+      </div>
+    </section>
+
+    <!-- 第七章：版本歷史與 FAQ -->
+    <section id="ch7" class="section-card">
+      <div class="section-title">
+        <span>📜 第七章：版本歷史 (Changelog) & 常見問題</span>
+      </div>
+
+      <h4 style="margin-bottom:10px;">🏷️ 版本更新紀錄：</h4>
+      <ul style="padding-left:20px;font-size:0.9rem;color:#334155;line-height:1.7;margin-bottom:20px;">
+        <li>
+          <strong>v1.2.0 (2026-11-02)</strong>：
+          <br />• 📖 全面擴充使用手冊：新增視覺化圖解流程與獨立 <code>manual.html</code>（支援一鍵列印 A4/另存 PDF）。
+          <br />• 🛡️ 修復 Word/網頁搬移器長文字排版問題：解決長網址或指令導致右側預覽被切開、按鈕看不見的 CSS 瑕疵。
+          <br />• 🏷️ 新增版本管理機制與更新歷程對話框。
+        </li>
+        <li>
+          <strong>v1.1.0 (2026-11-01)</strong>：
+          <br />• ☁️ 支援 Google Drive 試算表直接匯入與工作台快照雙向同步。
+          <br />• 🌐 部署 GitHub Pages，支援純前端零後端運算。
+          <br />• 🏢 介面通用化重構（適用一般企業、機關與機構辦公室辦公室）。
+        </li>
+        <li>
+          <strong>v1.0.0 (2026-10-31)</strong>：
+          <br />• 🚀 核心四大功能發布：雙 Excel 比對、Word 資料萃取、排程衝突/工時/資產、Wand.Tools 公式產生器。
+        </li>
+      </ul>
+
+      <h4 style="margin-bottom:10px;">❓ 常見問題排查 (FAQ)：</h4>
+      <div style="font-size:0.9rem;line-height:1.6;color:#334155;">
+        <p><strong>Q1：開啟 Excel 比對時，有些姓名後面的空白比對不到怎麼辦？</strong></p>
+        <p style="color:#64748b;margin-bottom:12px;">A：系統預設會自動執行「Trim 空白清洗」，去除肉眼看不出的全形半形空白與不可見字元，確保資料精準對齊。</p>
+
+        <p><strong>Q2：使用 Google Drive 匯入時顯示連線錯誤？</strong></p>
+        <p style="color:#64748b;margin-bottom:12px;">A：請確認該 Google 試算表共用權限設為「知道連結的任何人」皆可檢視即可正常匯入。</p>
+
+        <p><strong>Q3：我的資料是否會被上傳到伺服器？</strong></p>
+        <p style="color:#64748b;">A：100% 不會。本工具為純瀏覽器端 JavaScript 架構，所有比對運算皆在您的電腦本機記憶體完成，斷網亦可全功能運作。</p>
+      </div>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer style="text-align:center;padding:30px 0;color:#94a3b8;font-size:0.85rem;border-top:1px solid var(--border);">
+      辦公室 Excel 萬能工具箱 (v1.2.0) ・ 專為辦公室自動化與跨格式資料處理打造 ・ MIT License
+    </footer>
+
+  </div>
+
+</body>
+</html>

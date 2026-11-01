@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>辦公室 Excel 萬能工具箱 | 雙表比對・跨格式資料搬移・排程衝突與資產管理</title>
+  <style>
+:root {
+  --primary: #1e40af;
+  --primary-hover: #1e3a8a;
+  --primary-light: #eff6ff;
+  --secondary: #0f766e;
+  --secondary-light: #f0fdfa;
+  --accent: #d97706;
+  --accent-light: #fffbeb;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --success: #16a34a;
+  --success-light: #f0fdf4;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 270px;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  padding: 22px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.brand h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #38bdf8;
+}
+
+.brand p {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.badge-version {
+  background: #0284c7;
+  color: #fff;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.badge-version:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.version-info-box {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.version-info-box:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.version-link {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 16px 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-section-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  padding: 10px 12px 6px;
+  font-weight: 700;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #cbd5e1;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-bottom: 4px;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.4);
+}
+
+.nav-item .badge {
+  margin-left: auto;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.sidebar-footer {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.sidebar-footer a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: calc(100vw - 270px);
+  overflow-x: hidden;
+}
+
+.top-bar {
+  background: var(--bg-card);
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.top-bar-title h2 {
+  font-size: 1.25rem;
+  color: var(--text-main);
+}
+
+.top-bar-title p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.content-container {
+  padding: 24px 28px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tab-panel {
+  display: none;
+  animation: fadeIn 0.2s ease;
+  min-width: 0;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards & Grid */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-card .label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.stat-card .value {
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.stat-card.blue { border-left: 4px solid var(--primary); }
+.stat-card.green { border-left: 4px solid var(--success); }
+.stat-card.amber { border-left: 4px solid var(--accent); }
+.stat-card.red { border-left: 4px solid var(--danger); }
+
+/* Buttons & Inputs */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: #fff;
+}
+.btn-secondary:hover {
+  opacity: 0.92;
+}
+
+.btn-outline {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--text-main);
+}
+.btn-outline:hover {
+  background: #f1f5f9;
+}
+
+.btn-demo {
+  background: var(--accent-light);
+  border-color: #fde68a;
+  color: #b45309;
+}
+.btn-demo:hover {
+  background: #fef3c7;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #334155;
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed #94a3b8;
+  border-radius: 10px;
+  padding: 24px 16px;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.dropzone-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  max-height: 440px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+th {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  padding: 10px 12px;
+  position: sticky;
+  top: 0;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tr:hover td {
+  background: #f8fafc;
+}
+
+/* Diff Status Highlights */
+tr.diff-added td { background-color: #f0fdf4 !important; }
+tr.diff-removed td { background-color: #fef2f2 !important; color: #991b1b; }
+tr.diff-modified td { background-color: #fffbeb !important; }
+td.cell-changed {
+  background-color: #fde68a !important;
+  font-weight: 700;
+  color: #92400e;
+}
+
+/* Status Pill */
+.pill {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.pill-added { background: #dcfce7; color: #166534; }
+.pill-removed { background: #fee2e2; color: #991b1b; }
+.pill-modified { background: #fef3c7; color: #92400e; }
+.pill-same { background: #f1f5f9; color: #475569; }
+
+/* Paste Zone for Rich Content */
+.paste-editor {
+  min-height: 170px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fcfcfd;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.file-input-hidden {
+  opacity: 0;
+  width: 0.1px;
+  height: 0.1px;
+  position: absolute;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.sheet-selector {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #334155;
+  font-weight: 600;
+}
+.paste-editor:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+}
+
+/* Formula Chip & Box */
+.formula-box {
+  background: #0f172a;
+  color: #38bdf8;
+  font-family: "Consolas", "Monaco", monospace;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chip {
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Toast Notification */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.2s ease;
+}
+/* Google Drive & Mobile Office Extensions */
+.cloud-bar {
+  background: linear-gradient(90deg, #eff6ff 0%, #f0fdfa 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cloud-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+.cloud-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gdrive-input-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.gdrive-input-group input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.84rem;
+  padding: 7px 10px;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 14px;
+  max-width: 640px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Mobile Responsive Support (手機 / 平板 / 跨地移動辦公) */
+.mobile-nav-toggle {
+  display: none;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Visual Flow Diagram & Step Cards */
+.diagram-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.flow-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.flow-step {
+  flex: 1;
+  min-width: 130px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.flow-step-num {
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.flow-step-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.flow-step-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.flow-arrow {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  .nav-menu {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .nav-section-title, .sidebar-footer {
+    display: none;
+  }
+  .nav-item {
+    white-space: nowrap;
+    margin-bottom: 0;
+    padding: 8px 12px;
+  }
+  .nav-item .badge {
+    display: none;
+  }
+  .main-content {
+    max-width: 100vw;
+  }
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .top-bar {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .content-container {
+    padding: 16px;
+  }
+}
+
+</style>
+  <!-- SheetJS (讀取與匯出 Excel .xlsx / .xls / .csv) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Mammoth.js (讀取 Word .docx 表格與文字) -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- 左側導覽列 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <h1 style="font-size:1.1rem;margin:0;color:#fff;">🏢 辦公室萬能工具箱</h1>
+        <button class="badge-version" onclick="toggleChangelogModal(true)" title="點擊查看版本更新歷程">v1.2.0</button>
+      </div>
+      <p>專為各類辦公室打造的 Excel 自動化與跨格式資料處理平台（支援行政、專案、企業與機構通用）</p>
+      <div class="version-info-box" onclick="toggleChangelogModal(true)">
+        <span>🏷️ 版本：<strong>v1.2.0</strong> (2026.11)</span>
+        <span class="version-link">更新說明 ⓘ</span>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-section-title">核心 Excel 資料工具</li>
+      <li class="nav-item active" onclick="switchTab('diff', this)">
+        <span>📊</span>
+        <span>雙 Excel 智慧比對器</span>
+        <span class="badge">最常用</span>
+      </li>
+      <li class="nav-item" onclick="switchTab('extract', this)">
+        <span>📋</span>
+        <span>網頁 / Word 資料搬移</span>
+        <span class="badge">跨格式</span>
+      </li>
+
+      <li class="nav-section-title">辦公室例行業務專區</li>
+      <li class="nav-item" onclick="switchTab('course-ops', this)">
+        <span>🏢</span>
+        <span>排程衝突・工時・資產</span>
+        <span class="badge">例行事務</span>
+      </li>
+
+      <li class="nav-section-title">Wand.Tools 智慧輔助</li>
+      <li class="nav-item" onclick="switchTab('wand-ai', this)">
+        <span>🪄</span>
+        <span>Excel 公式與清洗魔杖</span>
+        <span class="badge">AI 輔助</span>
+      </li>
+
+      <li class="nav-section-title">說明手冊與 AI 客製化</li>
+      <li class="nav-item" onclick="switchTab('guide', this)">
+        <span>📖</span>
+        <span>使用手冊 ＆ Gemini 客製指南</span>
+        <span class="badge">必讀</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div>🔒 <strong>100% 本機端處理</strong>：所有檔案、員工資料與業務表冊皆在瀏覽器內運算，不外傳伺服器。</div>
+      <div style="margin-top:8px;">
+        參考：辦公室實務應用・<a href="https://wand.tools/zh-TW/" target="_blank">Wand.Tools</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 右側主要內容區 -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-title">
+        <h2 id="page-title">📊 雙 Excel 智慧比對器</h2>
+        <p id="page-desc">自動比對兩份工作表、名冊、庫存表或報表之「新增、刪除、異動儲存格」並一鍵匯出</p>
+      </div>
+      <div class="top-actions" style="flex-wrap:wrap;">
+        <a href="manual.html" target="_blank" class="btn btn-outline btn-sm" style="text-decoration:none;" title="另開獨立分頁查看圖解手冊與匯出 PDF">📖 圖解使用手冊 (PDF)</a>
+        <button class="btn btn-outline btn-sm" onclick="toggleChangelogModal(true)">🏷️ v1.2.0 更新說明</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleCloudModal(true)">☁️ Google Drive 設定</button>
+        <button class="btn btn-outline btn-sm" onclick="exportWorkspaceSnapshot()">💾 匯出進度快照</button>
+        <label class="btn btn-outline btn-sm" style="margin:0;">
+          📂 載入進度快照
+          <input type="file" accept=".json" style="display:none" onchange="importWorkspaceSnapshot(this.files[0])" />
+        </label>
+        <button class="btn btn-demo btn-sm" onclick="loadDemoDiff()">✨ 載入對照範例</button>
+      </div>
+    </header>
+
+    <div class="content-container">
+      <!-- 跨地移動辦公 (在家 / 機構辦公室 / 公司) 與 Google Drive 狀態列 -->
+      <div class="cloud-bar">
+        <div class="cloud-status">
+          <span>🌐 <strong>移動辦公模式 (在家 / 機構辦公室 / 公司)</strong>：</span>
+          <span id="sync-status-text" style="color:#0f766e;">所有變更自動保存於本機，亦可一鍵從 Google Drive 匯入試算表或同步工作台快照</span>
+        </div>
+        <div class="cloud-actions">
+          <button class="btn btn-sm btn-outline" onclick="saveWorkspaceToLocal(false)">📌 立即暫存進度</button>
+          <button class="btn btn-sm btn-primary" onclick="toggleCloudModal(true)">☁️ Google Drive 雲端同步與部署指南</button>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- TAB 1: 雙 Excel 智慧比對器 -->
+      <!-- ================================================================= -->
+      <section id="tab-diff" class="tab-panel active">
+        <div class="grid-2">
+          <!-- 檔案 A -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📁 原始基準檔 (Excel A：例如「初版資料 / 舊報表」)</div>
+            </div>
+            <label class="dropzone" id="dropzone-a" for="upload-excel-a">
+              <div class="dropzone-icon">📄</div>
+              <div id="file-label-a">點擊上傳或直接拖曳本機/Google Drive 檔案至此 (.xlsx / .xls / .csv)</div>
+              <input type="file" id="upload-excel-a" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0], 'A')" />
+              <div id="sheet-select-wrap-a"></div>
+            </label>
+            <div class="gdrive-input-group">
+              <input type="text" id="gdrive-url-diff-a" placeholder="☁️ 或貼上 Google 試算表 (Google Sheets) 連結直接匯入..." />
+              <button class="btn btn-sm btn-outline" onclick="importFromGoogleDriveUrl('diff-A')">雲端匯入 A</button>
+            </div>
+          </div>
+
+          <!-- 檔案 B -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📁 最新比對檔 (Excel B：例如「修訂定稿 / 新報表」)</div>
+            </div>
+            <label class="dropzone" id="dropzone-b" for="upload-excel-b">
+              <div class="dropzone-icon">📑</div>
+              <div id="file-label-b">點擊上傳或直接拖曳本機/Google Drive 檔案至此 (.xlsx / .xls / .csv)</div>
+              <input type="file" id="upload-excel-b" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0], 'B')" />
+              <div id="sheet-select-wrap-b"></div>
+            </label>
+            <div class="gdrive-input-group">
+              <input type="text" id="gdrive-url-diff-b" placeholder="☁️ 或貼上 Google 試算表 (Google Sheets) 連結直接匯入..." />
+              <button class="btn btn-sm btn-outline" onclick="importFromGoogleDriveUrl('diff-B')">雲端匯入 B</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 比對設定列 -->
+        <div class="card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div>
+              <label for="diff-key-col">🔑 對齊主鍵欄位 (例如：項目代碼 / 人員姓名 / 編號)</label>
+              <select id="diff-key-col" style="width:240px;" onchange="runExcelDiff()"></select>
+            </div>
+            <div style="padding-top:18px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="diff-ignore-space" checked onchange="runExcelDiff()" />
+                自動忽略前後多餘空白與換行符號
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="runExcelDiff()">🔍 立即執行比對</button>
+            <button class="btn btn-secondary" onclick="exportDiffExcel()">📥 匯出差異報告 Excel</button>
+          </div>
+        </div>
+
+        <!-- 統計小卡 -->
+        <div class="grid-4" style="margin-bottom:20px;">
+          <div class="stat-card amber" style="cursor:pointer" onclick="setDiffFilter('modified')">
+            <span class="label">✏️ 欄位內容異動 (點擊篩選)</span>
+            <span class="value" id="stat-modified">0</span>
+          </div>
+          <div class="stat-card green" style="cursor:pointer" onclick="setDiffFilter('added')">
+            <span class="label">➕ 新增項目 (點擊篩選)</span>
+            <span class="value" id="stat-added">0</span>
+          </div>
+          <div class="stat-card red" style="cursor:pointer" onclick="setDiffFilter('removed')">
+            <span class="label">➖ 已刪除 / 移除項目 (點擊篩選)</span>
+            <span class="value" id="stat-removed">0</span>
+          </div>
+          <div class="stat-card blue" style="cursor:pointer" onclick="setDiffFilter('all')">
+            <span class="label">✔️ 完全相同 (點擊顯示全部)</span>
+            <span class="value" id="stat-same">0</span>
+          </div>
+        </div>
+
+        <!-- 差異明細表 -->
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+            <div class="card-title">📋 逐欄比對明細表（黃底代表有異動的儲存格：原值 ➔ 新值）</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="diff-search-input" placeholder="🔍 搜尋代碼/名稱/人員/地點..." style="width:230px;" oninput="onDiffSearch(this.value)" />
+              <button class="btn btn-sm btn-outline" onclick="setDiffFilter('all')">顯示全部</button>
+              <button class="btn btn-sm btn-outline" onclick="setDiffFilter('diff-only')">只看差異 (新增/刪除/異動)</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="diff-thead"></thead>
+              <tbody id="diff-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: 網頁 / Word / 公文 資料搬移器 -->
+      <!-- ================================================================= -->
+      <section id="tab-extract" class="tab-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 步驟 1：從網頁、Word、公文或 Email 貼上內容</div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-demo" onclick="loadExtractDemo('html')">範例1：網頁/Word表格</button>
+                <button class="btn btn-sm btn-demo" onclick="loadExtractDemo('text')">範例2：Word調補課公文</button>
+              </div>
+            </div>
+            <p style="font-size:0.84rem;color:#64748b;margin-bottom:10px;">
+              您可以直接從 <strong>行政管理部網頁、Word 表格、PDF 或 Email</strong> 複製後按 <code>Ctrl+V</code> 貼入下方，或是直接上傳 <code>.docx</code> Word 檔：
+            </p>
+            <div id="rich-paste-box" class="paste-editor" contenteditable="true"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px;">
+              <div style="display:flex;gap:14px;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
+                  <input type="checkbox" id="ext-clean-space" checked onchange="parsePastedContent()" /> 清除隱藏換行與多餘空白
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
+                  <input type="checkbox" id="ext-half-width" checked onchange="parsePastedContent()" /> 全形英數自動轉半形
+                </label>
+              </div>
+              <label class="btn btn-sm btn-outline" style="margin:0;">
+                📂 或直接上傳 Word (.docx)
+                <input type="file" accept=".docx" style="display:none" onchange="handleDocxUpload(this.files[0])" />
+              </label>
+            </div>
+            <div class="gdrive-input-group">
+              <input type="text" id="gdrive-url-extract" placeholder="☁️ 或貼上 Google 試算表 / Google 文件連結直接擷取..." />
+              <button class="btn btn-sm btn-outline" onclick="importFromGoogleDriveUrl('extract')">從 Google Drive 擷取</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">✨ 步驟 2：即時結構化預覽（點擊儲存格可直接修改）</div>
+              <span class="pill pill-added" id="ext-count-badge">共擷取 0 筆</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" onclick="exportExtractedExcel()">📥 匯出成乾淨 Excel (.xlsx)</button>
+              <button class="btn btn-outline btn-sm" onclick="sendExtractedToDiff('A')">➡️ 送入比對器【檔案 A】</button>
+              <button class="btn btn-outline btn-sm" onclick="sendExtractedToDiff('B')">➡️ 送入比對器【檔案 B】</button>
+            </div>
+            <div class="table-wrap" style="max-height:310px;">
+              <table>
+                <thead id="ext-thead"></thead>
+                <tbody id="ext-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: 辦公室例行事務工作台 (排程會議衝突、人員工時核算、資產設備盤點) -->
+      <!-- ================================================================= -->
+      <section id="tab-course-ops" class="tab-panel">
+        <!-- 排程衝突與工時上傳區 -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h3 style="font-size:1.05rem;">🗓️ 排程 / 會議室衝突檢測 ＆ 人員工時與加班津貼自動核算</h3>
+              <p style="font-size:0.84rem;color:#64748b;">支援欄位：<code>項目/項目代碼、名稱、人員/教師、職稱/職等、排定時段(如一234)、使用場地/教室、時數、減免時數</code></p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <label class="btn btn-outline" style="margin:0;">
+                📂 匯入本機/Google Drive 排程或工時 Excel
+                <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleScheduleUpload(this.files[0])" />
+              </label>
+              <button class="btn btn-demo" onclick="initCourseOps();showToast('已還原辦公室排程與資產設備清冊範例！')">🔄 還原範例資料</button>
+            </div>
+          </div>
+          <div class="gdrive-input-group">
+            <input type="text" id="gdrive-url-schedule" placeholder="☁️ 或貼上 Google 試算表 (Google Sheets) 排程總表連結，一鍵在線上檢測衝突與核算工時..." />
+            <button class="btn btn-sm btn-primary" onclick="importFromGoogleDriveUrl('schedule')">☁️ 從 Google Drive 匯入排程總表</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- 場地與人員排程衝突預警 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🚨 會議室/場地與人員排程衝突預警</div>
+              <span class="pill pill-removed">發現 <span id="conflict-count">0</span> 筆衝突</span>
+            </div>
+            <div class="table-wrap" style="max-height:260px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>衝突類型</th>
+                    <th>衝突時段 / 對象</th>
+                    <th>重疊排程明細</th>
+                  </tr>
+                </thead>
+                <tbody id="conflict-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 人員工時與超額/加班核算 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">👨‍💼 人員工時 / 任務工時與加班津貼核計表</div>
+              <span style="font-size:0.78rem;color:#64748b;">標準時數：依職級與基本工時規定自動核算</span>
+            </div>
+            <div class="table-wrap" style="max-height:260px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>人員/教師</th>
+                    <th>職稱/職等</th>
+                    <th>標準時數</th>
+                    <th>減免時數</th>
+                    <th>應達時數</th>
+                    <th>實際總時數</th>
+                    <th>核算結果</th>
+                    <th>明細項目</th>
+                  </tr>
+                </thead>
+                <tbody id="hours-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 辦公室資產設備、行政工具與消耗品盤點管理 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧰 辦公室資產設備檢查 ＆ 行政耗材/工具盤點表</div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <select id="inv-filter-cat" style="width:160px;" onchange="renderInventoryTable()">
+                <option value="all">全部管理類別</option>
+                <option value="辦公設備">辦公設備</option>
+                <option value="行政工具">行政工具</option>
+                <option value="耗材與物品">耗材與物品</option>
+              </select>
+              <button class="btn btn-sm btn-secondary" onclick="exportInventoryExcel()">📥 匯出盤點清冊 Excel</button>
+            </div>
+          </div>
+
+          <!-- 快速新增列 -->
+          <div style="display:grid;grid-template-columns: 1.2fr 1.5fr 1.8fr 0.8fr 1fr auto;gap:10px;margin-bottom:14px;background:#f8fafc;padding:12px;border-radius:8px;">
+            <select id="new-inv-cat">
+              <option value="辦公設備">辦公設備</option>
+              <option value="行政工具">行政工具</option>
+              <option value="耗材與物品">耗材與物品</option>
+            </select>
+            <input type="text" id="new-inv-loc" placeholder="存放地點/會議室/樓層 (如 行政大樓 2F)" />
+            <input type="text" id="new-inv-name" placeholder="物品/設備/工具名稱" />
+            <input type="number" id="new-inv-qty" placeholder="應有數量" value="1" min="1" />
+            <input type="text" id="new-inv-owner" placeholder="保管/盤點人員" />
+            <button class="btn btn-primary" onclick="addInventoryItem()">➕ 新增項目</button>
+          </div>
+
+          <div class="table-wrap" style="max-height:300px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>編號</th>
+                  <th>管理類別</th>
+                  <th>存放地點 / 會議室</th>
+                  <th>物品 / 設備 / 工具名稱</th>
+                  <th>應有數量</th>
+                  <th>實盤數量 (可改)</th>
+                  <th>狀態</th>
+                  <th>保管/盤點人員</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 4: Wand.Tools 風格 Excel 萬能公式與清洗魔杖 -->
+      <!-- ================================================================= -->
+      <section id="tab-wand-ai" class="tab-panel">
+        <div class="grid-2">
+          <!-- 左欄：互動式公式生成器 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🪄 辦公室專屬 Excel 公式自動產生器 (參考 Wand.Tools)</div>
+            </div>
+            <p style="font-size:0.86rem;color:#64748b;margin-bottom:14px;">
+              不必背複雜的函數！只要選擇您要處理的辦公室業務情境與欄位代號，立即生成可直接貼入 Excel 的公式：
+            </p>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <label>1. 選擇您想完成的任務情境</label>
+                <select id="wand-task-type" onchange="generateCustomFormula()">
+                  <option value="xlookup">🔍 跨表查找對應資料（如：用編號去總表抓「所屬部門」或「負責人」）</option>
+                  <option value="countif">✅ 核對兩份名單是否存在（如：檢查新提報名冊是否已在總表）</option>
+                  <option value="sumifs">➕ 按條件自動加總（如：統計同一位人員在各專案的「總工時/總費用」）</option>
+                  <option value="clean">🧹 徹底清除從網頁/Word貼上後的「隱藏空白與換行符號」</option>
+                </select>
+              </div>
+
+              <div class="grid-3">
+                <div>
+                  <label>查找值儲存格</label>
+                  <input type="text" id="wand-col-lookup" value="A2" oninput="generateCustomFormula()" />
+                </div>
+                <div>
+                  <label>來源工作表名稱</label>
+                  <input type="text" id="wand-sheet-name" value="業務總表" oninput="generateCustomFormula()" />
+                </div>
+                <div>
+                  <label>要抓回/加總的欄位</label>
+                  <input type="text" id="wand-col-return" value="F:F" oninput="generateCustomFormula()" />
+                </div>
+              </div>
+
+              <div style="margin-top:6px;">
+                <label>✨ 為您生成的 Excel / Google Sheets 公式：</label>
+                <div class="formula-box">
+                  <code id="custom-formula-output">=XLOOKUP(A2, 業務總表!A:A, 業務總表!F:F, "查無資料")</code>
+                  <button class="btn btn-sm btn-primary" onclick="copyText(document.getElementById('custom-formula-output').textContent)">📋 複製公式</button>
+                </div>
+                <p id="custom-formula-explain" style="font-size:0.84rem;color:#0f766e;margin-top:8px;font-weight:600;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右欄：辦公室常用公式速查字典 -->
+          <div>
+            <div class="card" style="margin-bottom:14px;">
+              <label for="formula-search">🔎 搜尋辦公室常用公式關鍵字（例如：查找、工時、合併、VLOOKUP、清洗）</label>
+              <input type="text" id="formula-search" placeholder="輸入關鍵字立即篩選公式..." oninput="renderFormulaCards(this.value)" />
+              <div class="chip-group">
+                <span class="chip" onclick="document.getElementById('formula-search').value='查找';renderFormulaCards('查找')">跨表查找</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='加總';renderFormulaCards('加總')">條件加總</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='合併';renderFormulaCards('合併')">文字字串合併</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='空白';renderFormulaCards('空白')">網頁Word空白清理</span>
+                <span class="chip" onclick="document.getElementById('formula-search').value='';renderFormulaCards('')">顯示全部</span>
+              </div>
+            </div>
+
+            <div id="formula-cards-container" style="max-height:460px;overflow-y:auto;padding-right:4px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 5: 詳細載用說明 & Gemini / Antigravity 客製化改裝指南 -->
+      <!-- ================================================================= -->
+      <section id="tab-guide" class="tab-panel">
+        <div class="card" style="background:linear-gradient(135deg, #1e3a8a 0%, #0f766e 100%);color:#fff;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+            <div>
+              <div style="display:inline-block;background:rgba(255,255,255,0.2);padding:2px 10px;border-radius:99px;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+                📌 系統版本 v1.2.0 (2026.11) 官方操作手冊
+              </div>
+              <h3 style="font-size:1.35rem;margin-bottom:6px;">🏢 辦公室 Excel 萬能工具箱：圖解使用手冊 ＆ AI 客製指南</h3>
+              <p style="font-size:0.92rem;opacity:0.92;line-height:1.6;max-width:720px;">
+                本系統為 <strong>100% 純前端無伺服器架構 (Zero-Backend)</strong>，所有資料皆在您的電腦瀏覽器內運算。您可直接在線上使用、下載單一檔隨身帶，或開啟獨立分頁列印/另存為 PDF 操作手冊！
+              </p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="manual.html" target="_blank" class="btn btn-primary" style="background:#38bdf8;color:#0f172a;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+                📄 開啟獨立分頁手冊 (支援另存 PDF)
+              </a>
+              <button class="btn btn-outline" style="border-color:#fff;color:#fff;" onclick="toggleChangelogModal(true)">
+                🏷️ 查看版本歷程
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 圖解四大功能操作 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🗺️ 各功能圖解操作流程 (視覺導覽引導)</div>
+            <a href="manual.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">📄 查看完整手冊分頁</a>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <!-- 圖解 1: 雙 Excel 比對 -->
+            <div class="diagram-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="color:#1e40af;font-size:0.96rem;font-weight:700;">📊 1. 雙 Excel 智慧對比器操作流程</h4>
+                <span class="badge" style="background:#eff6ff;color:#1e40af;padding:2px 8px;border-radius:99px;font-size:0.75rem;">最常用</span>
+              </div>
+              <div class="flow-steps">
+                <div class="flow-step">
+                  <span class="flow-step-num">1</span>
+                  <div class="flow-step-title">載入基準檔 A</div>
+                  <div class="flow-step-desc">拖入舊版 Excel 或貼上 Google 試算表連結</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">2</span>
+                  <div class="flow-step-title">載入對照檔 B</div>
+                  <div class="flow-step-desc">拖入新版 Excel 或貼上 Google 試算表連結</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">3</span>
+                  <div class="flow-step-title">設定對齊主鍵</div>
+                  <div class="flow-step-desc">選擇編號、學號、代碼或姓名</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">4</span>
+                  <div class="flow-step-title">分析與匯出</div>
+                  <div class="flow-step-desc">綠(新增)・黃(異動)・紅(刪除)・一鍵匯出報告</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 圖解 2: Word / 網頁文字搬移 -->
+            <div class="diagram-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="color:#0f766e;font-size:0.96rem;font-weight:700;">📋 2. Word / 網頁 / 公文資料搬移器流程</h4>
+                <span class="badge" style="background:#f0fdfa;color:#0f766e;padding:2px 8px;border-radius:99px;font-size:0.75rem;">跨格式清洗</span>
+              </div>
+              <div class="flow-steps">
+                <div class="flow-step">
+                  <span class="flow-step-num">1</span>
+                  <div class="flow-step-title">複製非結構文字</div>
+                  <div class="flow-step-desc">複製網頁表格、公文、Word 或直接上傳 .docx</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">2</span>
+                  <div class="flow-step-title">貼入解析編輯區</div>
+                  <div class="flow-step-desc">防爆版排版保護，自動去 CHAR(160) 隱藏空白</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">3</span>
+                  <div class="flow-step-title">即時結構化預覽</div>
+                  <div class="flow-step-desc">自動辨識欄位並提供儲存格即點即改</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">4</span>
+                  <div class="flow-step-title">匯出或比對</div>
+                  <div class="flow-step-desc">下載乾淨 Excel 或一鍵送入雙表比對器</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 圖解 3: 排程衝突與資產 -->
+            <div class="diagram-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="color:#b45309;font-size:0.96rem;font-weight:700;">🏢 3. 辦公室排程衝突、工時與資產管理流程</h4>
+                <span class="badge" style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:0.75rem;">例行事務</span>
+              </div>
+              <div class="flow-steps">
+                <div class="flow-step">
+                  <span class="flow-step-num">1</span>
+                  <div class="flow-step-title">匯入總排程表 / 排程</div>
+                  <div class="flow-step-desc">支援時段欄位（如一234、二56）自動拆解</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">2</span>
+                  <div class="flow-step-title">秒抓排程衝突與重複</div>
+                  <div class="flow-step-desc">偵測同教室衝突或同人員分身衝突</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">3</span>
+                  <div class="flow-step-title">自動核算超額工時</div>
+                  <div class="flow-step-desc">依職級基準扣抵減免，核算加班超時加班</div>
+                </div>
+                <div class="flow-arrow">➔</div>
+                <div class="flow-step">
+                  <span class="flow-step-num">4</span>
+                  <div class="flow-step-title">資產與設備盤點</div>
+                  <div class="flow-step-desc">現場核對實盤數、備註狀態並產出報表</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 三種載用方式 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🚀 一、三種載用與移動辦公方式（在家 / 辦公室 / 差旅皆可用）</div>
+          </div>
+          <div class="grid-3">
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:#f8fafc;">
+              <span class="pill pill-added" style="margin-bottom:8px;">方式 1：免安裝直接開網頁</span>
+              <h4 style="margin-bottom:6px;">🌐 GitHub Pages 線上版</h4>
+              <p style="font-size:0.85rem;color:#475569;line-height:1.5;margin-bottom:10px;">
+                不用下載任何程式，只要有瀏覽器，打開網址即可立刻使用所有功能：
+              </p>
+              <a href="https://zhijaysun0915.github.io/course-office-toolkit/" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;">🔗 開啟線上版工具箱</a>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:#f8fafc;">
+              <span class="pill pill-modified" style="margin-bottom:8px;">方式 2：放進 Google Drive 隨身帶</span>
+              <h4 style="margin-bottom:6px;">☁️ 單一 HTML 隨身檔 + 雲端試算表</h4>
+              <p style="font-size:0.85rem;color:#475569;line-height:1.5;margin-bottom:10px;">
+                可下載「單一檔案隨身版 (.html)」放進隨身碟或 Google Drive，任何電腦雙擊即可離線開啟：
+              </p>
+              <a href="https://drive.google.com/drive/folders/1Q4dfyDApDq8CB7saNcIXDtoo5ouU8RDy" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration:none;">📁 開啟 Google Drive 專區</a>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:#f8fafc;">
+              <span class="pill pill-same" style="margin-bottom:8px;">方式 3：Git Clone 完整原始碼</span>
+              <h4 style="margin-bottom:6px;">🐙 下載原始碼自訂修改</h4>
+              <p style="font-size:0.85rem;color:#475569;line-height:1.5;margin-bottom:10px;">
+                適合想要修改欄位、調整計算規則或交給 AI 助手改裝的使用者：
+              </p>
+              <a href="https://github.com/zhijaysun0915/course-office-toolkit" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">📦 前往 GitHub 儲存庫</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 四大模組操作教學 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🛠️ 二、四大功能模組詳細操作步驟</div>
+          </div>
+          <div class="grid-2" style="gap:16px;font-size:0.88rem;line-height:1.6;">
+            <div style="border-left:4px solid var(--primary);padding-left:12px;">
+              <h4 style="color:var(--primary);margin-bottom:4px;">1. 📊 雙 Excel 智慧比對器</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li>在左、右兩側分別上傳新舊兩份 Excel（`.xlsx/.xls/.csv`），或直接貼上 <strong>Google 試算表分享連結</strong>點擊「雲端匯入」。</li>
+                <li>在「🔑 對齊主鍵欄位」選擇用來對齊的唯一欄位（例如：<code>編號</code>、<code>代碼</code>、<code>姓名</code>、<code>品名</code>）。</li>
+                <li>點擊「🔍 立即執行比對」，系統會自動用顏色標出：<strong>綠底（新增）</strong>、<strong>紅底（刪除/移除）</strong>、<strong>黃底（有異動的儲存格：原值 ➔ 新值）</strong>。</li>
+                <li>點擊「📥 匯出差異報告 Excel」即可下載完整核對結果。</li>
+              </ol>
+            </div>
+
+            <div style="border-left:4px solid var(--secondary);padding-left:12px;">
+              <h4 style="color:var(--secondary);margin-bottom:4px;">2. 📋 網頁 / Word / 公文資料搬移器</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li>直接從系統網頁、Word 文件、Email 或公文選取表格或文字，按 <code>Ctrl+C</code> 複製後貼入左側編輯框（或直接上傳 <code>.docx</code> 檔）。</li>
+                <li>支援「<code>欄位：內容 | 欄位：內容</code>」格式的公文或申請單自動拆欄。</li>
+                <li>自動清除導致 Excel 公式對不到的 <code>CHAR(160)</code> 隱藏空白與換行。</li>
+                <li>右側預覽表格可直接點擊修改文字，並可「匯出成乾淨 Excel」或「一鍵送入雙表比對器」。</li>
+              </ol>
+            </div>
+
+            <div style="border-left:4px solid var(--accent);padding-left:12px;">
+              <h4 style="color:#b45309;margin-bottom:4px;">3. 🏢 辦公室例行事務（排程衝突・工時・資產）</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li>匯入含有 <code>項目/項目代碼、名稱、人員/教師、職稱/職等、排定時段(如一234)、使用場地/教室、時數、減免時數</code> 的排程 Excel 或 Google 試算表。</li>
+                <li>系統自動將時段拆解為單節/單小時區段，秒抓出<strong>同一時段同會議室/教室</strong>或<strong>同一人員同時段兩個排程</strong>的衝突。</li>
+                <li>自動依職級基本工時/鐘點與減免時數核算超時加班或津貼。</li>
+                <li>下方提供「辦公室設備檢查 & 資產工具盤點表」，可直接改實盤數量並匯出清冊。</li>
+              </ol>
+            </div>
+
+            <div style="border-left:4px solid #7c3aed;padding-left:12px;">
+              <h4 style="color:#6d28d9;margin-bottom:4px;">4. ☁️ 跨地移動辦公（在家 / 辦公室 / 差旅接續進度）</h4>
+              <ol style="padding-left:18px;color:#334155;">
+                <li><strong>Google 試算表連線</strong>：將 Google 試算表權限設為「知道連結的任何人可檢視」，貼上網址即可直接抓資料。</li>
+                <li><strong>進度快照放雲端</strong>：下班前點擊右上角「💾 匯出進度至 Google Drive」存成 <code>.json</code>；換電腦後點擊「📂 從 Google Drive 載入進度」即可 100% 還原工作台。</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemini / Antigravity 客製化教學 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 三、如何在您自己的 Gemini / Antigravity 中客製化修改本專案？</div>
+            <span class="pill pill-added">開放原始碼・AI 友善架構</span>
+          </div>
+
+          <p style="font-size:0.9rem;color:#334155;margin-bottom:14px;line-height:1.6;">
+            每個企業、機構辦公室或單位的 Excel 報表欄位名稱、工時或核算規則可能不同。您不需要懂寫程式，只要把本專案拉進您的 <strong>Antigravity IDE</strong> 或 <strong>Gemini</strong>，直接用中文下指令就能改造成您單位專屬的版本：
+          </p>
+
+          <div style="background:#0f172a;color:#e2e8f0;padding:16px;border-radius:10px;font-family:Consolas,monospace;font-size:0.86rem;margin-bottom:16px;line-height:1.6;">
+            <div style="color:#38bdf8;font-weight:700;margin-bottom:6px;"># 步驟 1：在 Antigravity 終端機下載本專案並設為工作區 (Workspace)</div>
+            <div>git clone https://github.com/zhijaysun0915/course-office-toolkit.git</div>
+            <div>cd course-office-toolkit</div>
+          </div>
+
+          <h4 style="font-size:0.95rem;margin-bottom:10px;color:#0f172a;">✨ 步驟 2：直接複製以下提示詞 (Prompt) 貼給您的 Gemini / Antigravity：</h4>
+
+          <div class="grid-2" style="gap:12px;">
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 A：修改人員基本工時或加班超額規則</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「請幫我修改 <code>js/app.js</code> 裡面的基本標準工時規定：我們單位的主管為 8 小時、工程師 8 小時、專案約聘 6 小時、顧問講師 4 小時，並新增一個『兼任專案人員』類別。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('請幫我修改 js/app.js 裡面的基本標準工時規定：我們單位的主管為 8 小時、工程師 8 小時、專案約聘 6 小時、顧問講師 4 小時，並新增一個「兼任專案人員」類別。')">📋 複製這段 AI 指令</button>
+            </div>
+
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 B：配合您單位內部系統匯出的 Excel 欄位</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「我們單位系統匯出的 Excel 欄位名稱叫做『專案代號、任務名稱、負責人、排定時段、執行地點、預估工時』，請幫我修改 <code>js/app.js</code> 與 <code>js/demo-data.js</code> 以相容這些欄位。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('我們單位系統匯出的 Excel 欄位名稱叫做「專案代號、任務名稱、負責人、排定時段、執行地點、預估工時」，請幫我修改 js/app.js 與 js/demo-data.js 以相容這些欄位。')">📋 複製這段 AI 指令</button>
+            </div>
+
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 C：新增您部門專屬的例行追蹤表</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「請在『辦公室例行事務』頁面新增一個『專案里程碑完成進度追蹤表』，並支援從 Excel 匯入與篩選尚未完成的專案項目。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('請在「辦公室例行事務」頁面新增一個「專案里程碑完成進度追蹤表」，並支援從 Excel 匯入與篩選尚未完成的專案項目。')">📋 複製這段 AI 指令</button>
+            </div>
+
+            <div style="border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#fff;">
+              <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💬 客製化情境 D：重新打包成單一 HTML 隨身檔</div>
+              <p style="font-size:0.83rem;color:#475569;margin-bottom:8px;">
+                「我已經修改完功能了，請幫我把 <code>index.html</code>、<code>css/style.css</code>、<code>js/demo-data.js</code> 與 <code>js/app.js</code> 重新合併打包成最新的單一 HTML 隨身檔並推上 GitHub。」
+              </p>
+              <button class="btn btn-sm btn-outline" onclick="copyText('我已經修改完功能了，請幫我把 index.html、css/style.css、js/demo-data.js 與 js/app.js 重新合併打包成最新的單一 HTML 隨身檔並推上 GitHub。')">📋 複製這段 AI 指令</button>
+            </div>
+          </div>
+
+          <!-- 專案結構對照表 -->
+          <div style="margin-top:16px;">
+            <h4 style="font-size:0.92rem;margin-bottom:8px;">📂 專案檔案結構對照表（方便您或 AI 快速定位修改位置）</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>檔案路徑</th>
+                    <th>功能說明</th>
+                    <th>常見客製化修改項目</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>index.html</code></td>
+                    <td>網頁主畫面結構與各頁籤介面</td>
+                    <td>增減按鈕、修改標題、新增部門專屬頁籤</td>
+                  </tr>
+                  <tr>
+                    <td><code>js/app.js</code></td>
+                    <td>核心邏輯（雙表比對、網頁Word擷取、排程衝突與鐘點計算、Google Drive 匯入）</td>
+                    <td>調整排程衝突時間解析格式、修改教師基準工時標準、自訂匯出 Excel 格式</td>
+                  </tr>
+                  <tr>
+                    <td><code>js/demo-data.js</code></td>
+                    <td>內建範例資料與常用 Excel 公式字典</td>
+                    <td>替換成貴單位的預設範例資料、新增辦公室常用 Excel 公式範本</td>
+                  </tr>
+                  <tr>
+                    <td><code>css/style.css</code></td>
+                    <td>視覺配色、表格高亮樣式與手機平板 RWD 響應式排版</td>
+                    <td>調整機構辦公室代表色、字體大小、列印版面樣式</td>
+                  </tr>
+                  <tr>
+                    <td><code>google-apps-script/Code.gs</code></td>
+                    <td>Google Drive 私人雲端同步後端腳本</td>
+                    <td>部署於您個人的 Google Apps Script，實現免公開連結的私人雲端存檔</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- 雲端移動辦公與 Google Drive 設定彈窗 -->
+  <div id="cloud-modal" class="modal-backdrop" onclick="if(event.target===this) toggleCloudModal(false)">
+    <div class="modal-card">
+      <div class="card-header">
+        <div class="card-title">☁️ Google Drive 整合 ＆ 跨地移動辦公 (在家 / 機構辦公室 / 公司) 指南</div>
+        <button class="btn btn-sm btn-outline" onclick="toggleCloudModal(false)">✕ 關閉</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:0.88rem;line-height:1.55;">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px;border-radius:8px;">
+          <h4 style="color:#166534;margin-bottom:4px;">✅ 方式一：從 Google Drive 直接匯入 Excel / Google 試算表</h4>
+          <p>在各模組的「☁️ 貼上 Google 試算表連結」輸入框中，直接貼上 Google Drive 上的試算表連結（權限設為「知道連結的任何人可檢視」），即可在<strong>辦公室、家中或差旅地點</strong>直接抓入最新排程與名單，免重複下載檔案！</p>
+        </div>
+
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:12px;border-radius:8px;">
+          <h4 style="color:#1e40af;margin-bottom:4px;">✅ 方式二：工作台快照檔 (.json) 放進 Google Drive 跨電腦接續</h4>
+          <p>在辦公室做到一半要換電腦？點擊右上角 <strong>「💾 匯出進度至 Google Drive」</strong> 存進您的 Google 雲端硬碟資料夾；回到家或公司打開網頁，點擊 <strong>「📂 從 Google Drive 載入進度」</strong>，所有比對結果、排程表與設備盤點立即 100% 還原！</p>
+        </div>
+
+        <div style="background:#fffbeb;border:1px solid #fde68a;padding:12px;border-radius:8px;">
+          <h4 style="color:#92400e;margin-bottom:6px;">🚀 方式三：連接個人 Google Apps Script 雲端硬碟資料庫（一鍵雙向同步）</h4>
+          <p style="margin-bottom:8px;">若您想直接一鍵讀寫私人 Google Drive（不需下載快照檔），可貼上部署於您個人 Google Drive 的 Apps Script 網址：</p>
+          <input type="text" id="gas-webapp-url" placeholder="https://script.google.com/macros/s/xxxxxx/exec" style="margin-bottom:8px;" />
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm btn-primary" onclick="syncWithGoogleAppsScript('push')">☁️ 備份目前進度至 Google Drive</button>
+            <button class="btn btn-sm btn-secondary" onclick="syncWithGoogleAppsScript('pull')">📥 從 Google Drive 拉取最新進度</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 版本更新歷程彈窗 -->
+  <div id="changelog-modal" class="modal-backdrop" onclick="if(event.target===this) toggleChangelogModal(false)">
+    <div class="modal-card">
+      <div class="card-header">
+        <div class="card-title">🏷️ 辦公室萬能工具箱 - 版本歷程與更新資訊</div>
+        <button class="btn btn-sm btn-outline" onclick="toggleChangelogModal(false)">✕ 關閉</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:0.88rem;line-height:1.6;max-height:70vh;overflow-y:auto;padding-right:6px;">
+        <!-- v1.2.0 -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:14px;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="color:#1e40af;font-size:1rem;">🚀 v1.2.0（當前最新版本）</strong>
+            <span style="font-size:0.75rem;background:#1e40af;color:#fff;padding:2px 8px;border-radius:99px;">2026-11-02</span>
+          </div>
+          <ul style="padding-left:18px;color:#1e293b;margin:0;">
+            <li><strong>📖 圖解使用手冊全面升級</strong>：新增視覺化操作圖解與獨立分頁 <code>manual.html</code>，支援 A4 一鍵列印與另存為 PDF。</li>
+            <li><strong>🛡️ 修復 Word/網頁長文字排版被切開 Bug</strong>：採用 CSS Grid <code>minmax(0, 1fr)</code> 與 <code>overflow-wrap: anywhere</code>，徹底解決貼上長網址或 Linux 指令造成右側卡片與按鈕看不到的問題。</li>
+            <li><strong>🏷️ 新增版本管理與更新紀錄彈窗</strong>：隨時掌握系統更新要點與最新改進。</li>
+            <li><strong>🏢 全站介面通用化調整</strong>：符合各大企業、機關機構與企業辦公室各類辦公室通例。</li>
+          </ul>
+        </div>
+
+        <!-- v1.1.0 -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:14px;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="color:#0f766e;font-size:0.95rem;">✨ v1.1.0 雲端移動辦公</strong>
+            <span style="font-size:0.75rem;background:#0f766e;color:#fff;padding:2px 8px;border-radius:99px;">2026-11-01</span>
+          </div>
+          <ul style="padding-left:18px;color:#334155;margin:0;">
+            <li><strong>☁️ Google Drive 深度整合</strong>：支援貼上試算表分享網址直接即時讀取資料。</li>
+            <li><strong>💾 跨裝置進度快照 (.json)</strong>：在家與辦公室雙向無縫接續作業進度。</li>
+            <li><strong>📦 純前端單一檔 (.html)</strong>：內建所有樣式與函式庫，離線即可隨點隨開。</li>
+            <li><strong>🌐 GitHub Pages 上線</strong>：無伺服器直接在線免安裝使用。</li>
+          </ul>
+        </div>
+
+        <!-- v1.0.0 -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:14px;border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="color:#475569;font-size:0.95rem;">🎉 v1.0.0 核心版本首發</strong>
+            <span style="font-size:0.75rem;background:#475569;color:#fff;padding:2px 8px;border-radius:99px;">2026-10-31</span>
+          </div>
+          <ul style="padding-left:18px;color:#475569;margin:0;">
+            <li><strong>📊 雙 Excel 智慧對比器</strong>：支援欄位自動對齊、綠黃紅三色高亮標註與匯出。</li>
+            <li><strong>📋 Word/網頁/公文非結構化資料搬移</strong>：自動剔除 <code>CHAR(160)</code> 不可見空白。</li>
+            <li><strong>🏢 例行事務三大功能</strong>：排程排程衝突自動檢測、工時超額核算、辦公室資產工具盤點。</li>
+            <li><strong>🪄 Wand.Tools 智慧輔助</strong>：自然語言即時轉 Excel 實用公式。</li>
+          </ul>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+          <a href="manual.html" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;">📄 開啟完整使用手冊 (PDF)</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右下角通知容器 -->
+  <div id="toast-container"></div>
+
+  <script>
+// 辦公室通用 範例與預設資料
+const DemoData = {
+  // 模組 1：兩份 Excel 比對範例（業務版本初稿 vs 最終核定定稿）
+  diffOld: [
+    { "項目代碼": "CS1001", "項目名稱": "資訊系統規劃", "負責部門": "技術企劃部", "主要負責人": "陳建宏", "排定時段": "一234", "使用場地": "會議室-201", "預估人次": 55, "工時": 3 },
+    { "項目代碼": "CS2004", "項目名稱": "核心架構優化", "負責部門": "技術企劃部", "主要負責人": "林志明", "排定時段": "二234", "使用場地": "會議室-309", "預估人次": 48, "工時": 3 },
+    { "項目代碼": "EE1005", "項目名稱": "自動化產線整合", "負責部門": "工程整合部", "主要負責人": "王品翔", "排定時段": "三234", "使用場地": "研發室-102", "預估人次": 62, "工時": 3 },
+    { "項目代碼": "GE1102", "項目名稱": "企業數位轉型", "負責部門": "經營管理處", "主要負責人": "張雅婷", "排定時段": "四56", "使用場地": "培訓室-211", "預估人次": 40, "工時": 2 },
+    { "項目代碼": "ME3010", "項目名稱": "熱流動力分析", "負責部門": "硬體工程部", "主要負責人": "李國華", "排定時段": "五234", "使用場地": "實驗室-203", "預估人次": 12, "工時": 3 },
+    { "項目代碼": "BA2008", "項目名稱": "營運管理優化", "負責部門": "專案管理處", "主要負責人": "吳淑芬", "排定時段": "一678", "使用場地": "大會議室-105", "預估人次": 45, "工時": 3 }
+  ],
+  diffNew: [
+    { "項目代碼": "CS1001", "項目名稱": "資訊系統規劃", "負責部門": "技術企劃部", "主要負責人": "陳建宏", "排定時段": "一234", "使用場地": "會議室-201", "預估人次": 55, "工時": 3 },
+    { "項目代碼": "CS2004", "項目名稱": "核心架構優化", "負責部門": "技術企劃部", "主要負責人": "林志明", "排定時段": "二234", "使用場地": "演講廳-105 (更換大場地)", "預估人次": 82, "工時": 3 },
+    { "項目代碼": "EE1005", "項目名稱": "自動化產線整合", "負責部門": "工程整合部", "主要負責人": "王品翔", "排定時段": "三678", "使用場地": "研發室-102", "預估人次": 65, "工時": 3 },
+    { "項目代碼": "GE1102", "項目名稱": "企業數位轉型", "負責部門": "經營管理處", "主要負責人": "張雅婷、黃博仁(共同主持)", "排定時段": "四56", "使用場地": "培訓室-211", "預估人次": 45, "工時": 2 },
+    { "項目代碼": "BA2008", "項目名稱": "營運管理優化", "負責部門": "專案管理處", "主要負責人": "吳淑芬", "排定時段": "一678", "使用場地": "大會議室-105", "預估人次": 45, "工時": 3 },
+    { "項目代碼": "AI3001", "項目名稱": "生成式AI實務應用", "負責部門": "創新育成中心", "主要負責人": "周明德", "排定時段": "四234", "使用場地": "階梯教室-302", "預估人次": 60, "工時": 3 }
+  ],
+
+  // 模組 2：從網頁/Word/公文搬移過來的範例
+  sampleHtmlTable: `
+    <p>【行政辦公室專案公告】年度專家協同指導與技術顧問 核定補助名單：</p>
+    <table border="1" cellpadding="5" style="border-collapse:collapse; width:100%;">
+      <thead>
+        <tr style="background:#e2e8f0;">
+          <th>序號</th><th>執行單位</th><th>專案編號</th><th>專案名稱</th><th>專案負責人</th><th>外部顧問姓名</th><th>顧問服務單位</th><th>核定時數</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>資訊工程部</td><td>CS3102</td><td>雲端架構實務</td><td>陳建宏</td><td>蔡文豪 總監</td><td>台灣雲端科技(股)</td><td>6</td></tr>
+        <tr><td>2</td><td>產品設計部</td><td>DE2041</td><td>使用者介面設計</td><td>林芳瑜</td><td>鄭凱文 設計長</td><td>創意思維工作室</td><td>9</td></tr>
+        <tr><td>3</td><td>電子研發部</td><td>EE4012</td><td>IC封裝測試導論</td><td>王品翔</td><td>劉志強 處長</td><td>精密工業科技</td><td>6</td></tr>
+        <tr><td>4</td><td>營運管理部</td><td>IM3055</td><td>智慧製造與排程</td><td>張家豪</td><td>郭明輝 協理</td><td>研華智能科技</td><td>12</td></tr>
+      </tbody>
+    </table>
+  `,
+
+  sampleMessyText: `年度專案人員調班與會議時段調整申請單彙整 (Word/Email複製)
+申請人：陳建宏 經理 | 專案代碼：CS1001 | 專案名稱：資訊系統規劃 | 原排定時間：11/09(一) 234節 | 調整時間：11/13(五) 678節 | 預約場地：會議室-201 | 事由：出差參與國際專業技術審查
+申請人：林志明 副理 | 專案代碼：CS2004 | 專案名稱：核心架構優化 | 原排定時間：11/10(二) 234節 | 調整時間：11/18(三) ABC節 | 預約場地：會議室-309 | 事由：主持專案技術協調會
+申請人：張雅婷 專案主任 | 專案代碼：GE1102 | 專案名稱：企業數位轉型 | 原排定時間：11/12(四) 56節 | 調整時間：11/19(四) 78節 | 預約場地：培訓室-211 | 事由：公假參與產業標準研討會
+申請人：王品翔 總監 | 專案代碼：EE1005 | 專案名稱：自動化產線整合 | 原排定時間：11/11(三) 234節 | 調整時間：11/14(六) 234節 | 預約場地：研發室-102 | 事由：產學研合作案現場驗收`,
+
+  // 模組 3：辦公室例行事務（場地/排程衝突、人員工時、辦公資產與物品盤點）
+  scheduleCheckSample: [
+    { "項目代碼": "CS1001", "任務名稱": "計算機概論", "負責人員": "陳建宏", "職稱": "教授", "上課時間": "一234", "場地會議室": "IB-201", "時數": 3, "減免時數": 0 },
+    { "項目代碼": "CS5012", "任務名稱": "高等演算法", "負責人員": "陳建宏", "職稱": "教授", "上課時間": "三234", "場地會議室": "IB-401", "時數": 3, "減免時數": 0 },
+    { "項目代碼": "CS6001", "任務名稱": "書報討論", "負責人員": "陳建宏", "職稱": "教授", "上課時間": "四67", "場地會議室": "IB-201", "時數": 2, "減免時數": 0 },
+    { "項目代碼": "GE1205", "任務名稱": "AI倫理導論", "負責人員": "林志明", "職稱": "副教授", "上課時間": "一234", "場地會議室": "IB-201", "時數": 3, "減免時數": 2 },
+    { "項目代碼": "CS2004", "任務名稱": "資料結構", "負責人員": "林志明", "職稱": "副教授", "上課時間": "二234", "場地會議室": "TR-309", "時數": 3, "減免時數": 2 },
+    { "項目代碼": "CS3088", "任務名稱": "系統程式", "負責人員": "林志明", "職稱": "副教授", "上課時間": "二345", "場地會議室": "TR-310", "時數": 3, "減免時數": 2 },
+    { "項目代碼": "EE1005", "任務名稱": "電路學(一)", "負責人員": "王品翔", "職稱": "助理教授", "上課時間": "三234", "場地會議室": "EE-102", "時數": 3, "減免時數": 0 },
+    { "項目代碼": "EE2009", "任務名稱": "電子學實驗", "負責人員": "王品翔", "職稱": "助理教授", "上課時間": "五678", "場地會議室": "EE-305", "時數": 3, "減免時數": 0 }
+  ],
+
+  inventorySample: [
+    { "編號": "EQ-001", "管理類別": "辦公設備", "存放地點": "會議室-201", "物品名稱": "無線麥克風與音響組", "應有數量": 2, "實盤數量": 2, "狀態": "正常", "保管/檢查人": "周管理員", "最後檢查日": "2026-10-25" },
+    { "編號": "EQ-002", "管理類別": "辦公設備", "存放地點": "會議室-201", "物品名稱": "高流明雷射投影機", "應有數量": 1, "實盤數量": 1, "狀態": "正常", "保管/檢查人": "周管理員", "最後檢查日": "2026-10-25" },
+    { "編號": "EQ-003", "管理類別": "辦公設備", "存放地點": "研討室-309", "物品名稱": "HDMI轉接線與無線簡報筆", "應有數量": 2, "實盤數量": 1, "狀態": "缺件/待補", "保管/檢查人": "林專員", "最後檢查日": "2026-10-28" },
+    { "編號": "EQ-004", "管理類別": "行政工具", "存放地點": "行政備品櫃 A2", "物品名稱": "專案審查鋼印與封存章", "應有數量": 10, "實盤數量": 10, "狀態": "正常", "保管/檢查人": "張專員", "最後檢查日": "2026-10-15" },
+    { "編號": "EQ-005", "管理類別": "耗材與物品", "存放地點": "文具庫存區 B1", "物品名稱": "白板筆與板擦補充組", "應有數量": 5, "實盤數量": 2, "狀態": "需補充", "保管/檢查人": "林專員", "最後檢查日": "2026-10-29" },
+    { "編號": "EQ-006", "管理類別": "辦公設備", "存放地點": "大會議廳-105", "物品名稱": "環控觸控面板", "應有數量": 1, "實盤數量": 1, "狀態": "報修中", "保管/檢查人": "周管理員", "最後檢查日": "2026-10-30" }
+  ],
+
+  // 模組 4：Wand.Tools 風格 辦公室 Excel 智慧公式庫
+  formulaTemplates: [
+    {
+      category: "跨表比對與查找",
+      title: "跨表查找人員的「地點/會議室」或「分機電話」 (XLOOKUP)",
+      desc: "比 VLOOKUP 更直覺，不怕欄位順序調動，找不到時直接顯示「未排定」。",
+      formula: `=XLOOKUP(A2, 總表!A:A, 總表!F:F, "未排定")`,
+      sheetFormula: `=XLOOKUP(A2, '總表'!A:A, '總表'!F:F, "未排定")`,
+      tags: ["查找", "地點", "人員", "XLOOKUP", "VLOOKUP"]
+    },
+    {
+      category: "跨表比對與查找",
+      title: "檢查兩份名單中「代碼/工號是否重複或已存在」 (COUNTIF)",
+      desc: "快速核對各部門新提報的編號是否已經在全公司/全校總表裡。",
+      formula: `=IF(COUNTIF(總表!A:A, A2)>0, "已存在", "新增項目")`,
+      sheetFormula: `=IF(COUNTIF('總表'!A:A, A2)>0, "已存在", "新增項目")`,
+      tags: ["比對", "重複", "是否存在", "名單"]
+    },
+    {
+      category: "工時與津貼統計",
+      title: "統計單一人員全月/全期「總工時/總時數」 (SUMIFS)",
+      desc: "自動把同一位負責人名下所有專案或任務的時數加總（假設 C 欄為姓名、G 欄為時數）。",
+      formula: `=SUMIFS(G:G, C:C, C2)`,
+      sheetFormula: `=SUMIFS(G:G, C:C, C2)`,
+      tags: ["工時", "鐘點", "加總", "SUMIFS"]
+    },
+    {
+      category: "工時與津貼統計",
+      title: "計算人員「超額時數/加班時數」（扣除標準時數與減免後）",
+      desc: "假設總時數在 D2、標準時數在 E2（如標準 8 小時）、減免在 F2，低於 0 則算 0。",
+      formula: `=MAX(0, D2 - (E2 - F2))`,
+      sheetFormula: `=MAX(0, D2 - (E2 - F2))`,
+      tags: ["加班", "超額", "工時", "計算"]
+    },
+    {
+      category: "排程與時段拆解",
+      title: "從「一234」或「時段代碼」自動算出累計時數",
+      desc: "扣除第一個中文字（星期幾），後面有幾個字元就代表幾節/幾小時。",
+      formula: `=LEN(TRIM(E2))-1`,
+      sheetFormula: `=LEN(TRIM(E2))-1`,
+      tags: ["時段", "時數", "星期", "拆解"]
+    },
+    {
+      category: "資料清理與合併",
+      title: "將同專案多位「協同人員姓名」合併成一格 (TEXTJOIN)",
+      desc: "把同一個專案/任務的多位負責人以頓號「、」串接在一起。",
+      formula: `=TEXTJOIN("、", TRUE, IF(A$2:A$100=A2, D$2:D$100, ""))`,
+      sheetFormula: `=TEXTJOIN("、", TRUE, FILTER(D$2:D$100, A$2:A$100=A2))`,
+      tags: ["合併", "姓名", "頓號", "名單"]
+    },
+    {
+      category: "資料清理與合併",
+      title: "清除從 Word / 網頁複製過來的「隱藏換行與多餘空白」",
+      desc: "解決從網頁或文件貼上後，VLOOKUP 總是對不到資料的問題。",
+      formula: `=TRIM(CLEAN(SUBSTITUTE(A2, CHAR(160), " ")))`,
+      sheetFormula: `=TRIM(CLEAN(SUBSTITUTE(A2, CHAR(160), " ")))`,
+      tags: ["空白", "清理", "網頁", "Word", "對不到"]
+    }
+  ]
+};
+
+</script>
+  <script>
+// 全域狀態管理
+const AppState = {
+  // 模組 1: 雙表比對
+  diffDataA: [],
+  diffDataB: [],
+  diffResult: [],
+  diffHeaders: [],
+  diffFilter: 'all',
+  diffSearchQuery: '',
+  workbookA: null,
+  workbookB: null,
+
+  // 模組 2: 網頁/Word/公文搬移
+  extractedRows: [],
+  extractedHeaders: [],
+
+  // 模組 3: 辦公室例行事務 (排程衝突/工時/資產盤點)
+  scheduleRows: [],
+  inventoryRows: []
+};
+
+// 工具通知
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>✨</span> <span>${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
+
+// 頁面頁籤切換
+function switchTab(tabId, navEl) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const target = document.getElementById(`tab-${tabId}`);
+  if (target) target.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+
+  const titles = {
+    'diff': ['📊 雙 Excel 智慧比對器', '自動比對兩份工作表、名冊、排程或報表之「新增、刪除、異動儲存格」並一鍵匯出'],
+    'extract': ['📋 網頁 / Word / 公文資料搬移器', '從系統網頁公告、Word 表格、Email 或公文直接貼上，自動清理隱藏空白並轉為乾淨 Excel'],
+    'course-ops': ['🏢 辦公室例行事務工作台', '場地會議室與人員排程衝突檢測、工時與加班津貼核算、辦公資產與物品盤點管理'],
+    'wand-ai': ['🪄 Excel 萬能公式與清洗魔杖', '參考 Wand.Tools 設計：輸入白話文需求，立即產生辦公室常用 Excel 公式與一鍵批次資料清洗'],
+    'guide': ['📖 詳細載用說明 ＆ Gemini / Antigravity 客製化改裝手冊', '一步步教您如何線上/離線跨地使用，以及如何將本專案放入您自己的 Gemini / Antigravity 自由改裝']
+  };
+
+  if (titles[tabId]) {
+    document.getElementById('page-title').textContent = titles[tabId][0];
+    document.getElementById('page-desc').textContent = titles[tabId][1];
+  }
+}
+
+// ============================================================================
+// 模組 1：2 個 Excel 檔案智慧比對
+// ============================================================================
+function handleFileUpload(file, side) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      if (side === 'A') {
+        AppState.workbookA = workbook;
+      } else {
+        AppState.workbookB = workbook;
+      }
+      renderSheetSelector(workbook, side, file.name);
+      loadSheetData(workbook, workbook.SheetNames[0], side, file.name);
+    } catch (err) {
+      alert('讀取檔案失敗，請確認是否為有效的 Excel (.xlsx, .xls) 或 CSV 檔案！');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderSheetSelector(workbook, side, fileName) {
+  const containerId = side === 'A' ? 'sheet-select-wrap-a' : 'sheet-select-wrap-b';
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (workbook.SheetNames.length <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="margin-top:8px;" onclick="event.stopPropagation();">
+      <span style="font-size:0.78rem;color:#475569;margin-right:4px;">📑 選擇工作表：</span>
+      <select class="sheet-selector" onchange="loadSheetData(AppState.workbook${side}, this.value, '${side}', '${fileName.replace(/'/g, "\\'")}')">
+        ${workbook.SheetNames.map(s => `<option value="${s}">${s}</option>`).join('')}
+      </select>
+    </div>
+  `;
+}
+
+function loadSheetData(workbook, sheetName, side, fileName = '') {
+  if (!workbook || !workbook.Sheets[sheetName]) return;
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+  if (side === 'A') {
+    AppState.diffDataA = rows;
+    document.getElementById('file-label-a').innerHTML = `✅ 已載入：<strong>${fileName}</strong> [工作表: ${sheetName}] (${rows.length} 筆)`;
+  } else {
+    AppState.diffDataB = rows;
+    document.getElementById('file-label-b').innerHTML = `✅ 已載入：<strong>${fileName}</strong> [工作表: ${sheetName}] (${rows.length} 筆)`;
+  }
+  updateKeyColumnSelector();
+  runExcelDiff();
+  showToast(`已成功讀取 ${fileName || ''} (${sheetName}) 共 ${rows.length} 筆資料`);
+}
+
+function loadDemoDiff() {
+  AppState.diffDataA = JSON.parse(JSON.stringify(DemoData.diffOld));
+  AppState.diffDataB = JSON.parse(JSON.stringify(DemoData.diffNew));
+  document.getElementById('file-label-a').innerHTML = `✅ 已載入範例：<strong>業務排程初稿.xlsx</strong> (${AppState.diffDataA.length} 筆)`;
+  document.getElementById('file-label-b').innerHTML = `✅ 已載入範例：<strong>業務排程定稿.xlsx</strong> (${AppState.diffDataB.length} 筆)`;
+  updateKeyColumnSelector();
+  runExcelDiff();
+  showToast('已載入「版本初稿 vs 最終定稿」比對範例！');
+}
+
+function updateKeyColumnSelector() {
+  const headersSet = new Set();
+  [...AppState.diffDataA, ...AppState.diffDataB].forEach(row => {
+    Object.keys(row).forEach(k => headersSet.add(k));
+  });
+  AppState.diffHeaders = Array.from(headersSet);
+  const select = document.getElementById('diff-key-col');
+  select.innerHTML = '';
+  AppState.diffHeaders.forEach((h, idx) => {
+    const opt = document.createElement('option');
+    opt.value = h;
+    opt.textContent = h + (idx === 0 ? ' (推薦主鍵)' : '');
+    select.appendChild(opt);
+  });
+}
+
+function runExcelDiff() {
+  if (!AppState.diffDataA.length && !AppState.diffDataB.length) {
+    alert('請先上傳兩個 Excel 檔案，或點擊右上角「載入對照範例」體驗！');
+    return;
+  }
+  const keyCol = document.getElementById('diff-key-col').value || AppState.diffHeaders[0];
+  const ignoreSpaces = document.getElementById('diff-ignore-space').checked;
+
+  const norm = val => {
+    let s = String(val ?? '');
+    return ignoreSpaces ? s.replace(/\s+/g, ' ').trim() : s;
+  };
+
+  const mapA = new Map();
+  const mapB = new Map();
+
+  AppState.diffDataA.forEach((row, idx) => {
+    const k = norm(row[keyCol]) || `__ROW_A_${idx}`;
+    mapA.set(k, row);
+  });
+  AppState.diffDataB.forEach((row, idx) => {
+    const k = norm(row[keyCol]) || `__ROW_B_${idx}`;
+    mapB.set(k, row);
+  });
+
+  const allKeys = new Set([...mapA.keys(), ...mapB.keys()]);
+  const results = [];
+  let countAdded = 0, countRemoved = 0, countModified = 0, countSame = 0;
+
+  allKeys.forEach(k => {
+    const inA = mapA.has(k);
+    const inB = mapB.has(k);
+    if (inA && !inB) {
+      countRemoved++;
+      results.push({ status: 'removed', statusLabel: '已刪除/移除', key: k, rowA: mapA.get(k), rowB: null, changedCols: {} });
+    } else if (!inA && inB) {
+      countAdded++;
+      results.push({ status: 'added', statusLabel: '新增項目', key: k, rowA: null, rowB: mapB.get(k), changedCols: {} });
+    } else {
+      const rA = mapA.get(k);
+      const rB = mapB.get(k);
+      const changedCols = {};
+      let isDiff = false;
+      AppState.diffHeaders.forEach(h => {
+        if (norm(rA[h]) !== norm(rB[h])) {
+          isDiff = true;
+          changedCols[h] = { oldVal: rA[h] ?? '', newVal: rB[h] ?? '' };
+        }
+      });
+      if (isDiff) {
+        countModified++;
+        results.push({ status: 'modified', statusLabel: '內容異動', key: k, rowA: rA, rowB: rB, changedCols });
+      } else {
+        countSame++;
+        results.push({ status: 'same', statusLabel: '無異動', key: k, rowA: rA, rowB: rB, changedCols: {} });
+      }
+    }
+  });
+
+  AppState.diffResult = results;
+  document.getElementById('stat-added').textContent = countAdded;
+  document.getElementById('stat-removed').textContent = countRemoved;
+  document.getElementById('stat-modified').textContent = countModified;
+  document.getElementById('stat-same').textContent = countSame;
+
+  renderDiffTable();
+}
+
+function setDiffFilter(filter) {
+  AppState.diffFilter = filter;
+  renderDiffTable();
+}
+
+function onDiffSearch(query) {
+  AppState.diffSearchQuery = query;
+  renderDiffTable();
+}
+
+function renderDiffTable() {
+  const thead = document.getElementById('diff-thead');
+  const tbody = document.getElementById('diff-tbody');
+  const headers = AppState.diffHeaders;
+
+  thead.innerHTML = `<tr>
+    <th>比對狀態</th>
+    ${headers.map(h => `<th>${h}</th>`).join('')}
+  </tr>`;
+
+  const q = (AppState.diffSearchQuery || '').trim().toLowerCase();
+
+  const filtered = AppState.diffResult.filter(item => {
+    // 狀態篩選
+    if (AppState.diffFilter !== 'all') {
+      if (AppState.diffFilter === 'diff-only' && item.status === 'same') return false;
+      if (AppState.diffFilter !== 'diff-only' && item.status !== AppState.diffFilter) return false;
+    }
+    // 關鍵字搜尋
+    if (!q) return true;
+    const row = item.rowB || item.rowA || {};
+    const textMatch = Object.values(row).some(v => String(v).toLowerCase().includes(q));
+    const statusMatch = item.statusLabel.includes(q);
+    const changeMatch = Object.entries(item.changedCols || {}).some(([k, v]) => 
+      k.toLowerCase().includes(q) || String(v.oldVal).toLowerCase().includes(q) || String(v.newVal).toLowerCase().includes(q)
+    );
+    return textMatch || statusMatch || changeMatch;
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="${headers.length + 1}" style="text-align:center;padding:28px;color:#64748b;">目前篩選或搜尋條件下沒有找到符合的課程資料</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(item => {
+    const pillClass = {
+      'added': 'pill-added',
+      'removed': 'pill-removed',
+      'modified': 'pill-modified',
+      'same': 'pill-same'
+    }[item.status];
+
+    const cellsHtml = headers.map(h => {
+      if (item.status === 'added') {
+        return `<td>${item.rowB[h] ?? ''}</td>`;
+      }
+      if (item.status === 'removed') {
+        return `<td><del>${item.rowA[h] ?? ''}</del></td>`;
+      }
+      if (item.status === 'modified' && item.changedCols[h]) {
+        const c = item.changedCols[h];
+        return `<td class="cell-changed" title="原值：${c.oldVal}">
+          <span style="text-decoration:line-through;color:#b91c1c;font-size:0.78rem;margin-right:4px;">${c.oldVal}</span>
+          ➔ <strong>${c.newVal}</strong>
+        </td>`;
+      }
+      return `<td>${item.rowB[h] ?? ''}</td>`;
+    }).join('');
+
+    return `<tr class="diff-${item.status}">
+      <td><span class="pill ${pillClass}">${item.statusLabel}</span></td>
+      ${cellsHtml}
+    </tr>`;
+  }).join('');
+}
+
+function exportDiffExcel() {
+  if (!AppState.diffResult.length) {
+    alert('請先執行比對後再匯出！');
+    return;
+  }
+  const exportRows = AppState.diffResult.map(item => {
+    const obj = { "比對狀態": item.statusLabel };
+    AppState.diffHeaders.forEach(h => {
+      if (item.status === 'added') obj[h] = item.rowB[h] ?? '';
+      else if (item.status === 'removed') obj[h] = item.rowA[h] ?? '';
+      else if (item.status === 'modified' && item.changedCols[h]) {
+        obj[h] = `${item.changedCols[h].oldVal} -> ${item.changedCols[h].newVal}`;
+      } else {
+        obj[h] = item.rowB[h] ?? '';
+      }
+    });
+    return obj;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(exportRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "雙表比對結果");
+  XLSX.writeFile(wb, `Excel差異比對報告_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('已匯出 Excel 比對報告！');
+}
+
+// ============================================================================
+// 模組 2：資料從網頁 / Word / 公文搬來 (智慧擷取與清洗)
+// ============================================================================
+function loadExtractDemo(type) {
+  const pasteBox = document.getElementById('rich-paste-box');
+  if (type === 'html') {
+    pasteBox.innerHTML = DemoData.sampleHtmlTable;
+    showToast('已模擬從「系統網頁/Word表格」貼上內容，系統已自動擷取！');
+  } else {
+    pasteBox.innerText = DemoData.sampleMessyText;
+    showToast('已模擬從「Word公文/Email調補課申請單」貼上純文字，系統已自動拆解欄位！');
+  }
+  parsePastedContent();
+}
+
+function handleDocxUpload(file) {
+  if (!file) return;
+  if (typeof mammoth === 'undefined') {
+    alert('Word 解析元件載入中，請直接開啟 Word 全選複製貼入下方框內即可！');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    mammoth.convertToHtml({ arrayBuffer: e.target.result })
+      .then(function(result) {
+        document.getElementById('rich-paste-box').innerHTML = result.value;
+        parsePastedContent();
+        showToast(`已成功從 Word 檔 (${file.name}) 擷取表格與文字！`);
+      })
+      .catch(function() {
+        alert('Word 解析失敗，建議直接打開 Word 複製表格貼到下方區域！');
+      });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parsePastedContent() {
+  const pasteBox = document.getElementById('rich-paste-box');
+  const cleanSpace = document.getElementById('ext-clean-space').checked;
+  const halfWidth = document.getElementById('ext-half-width').checked;
+
+  const sanitize = str => {
+    let s = String(str ?? '').replace(/\u00A0/g, ' ');
+    if (cleanSpace) s = s.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (halfWidth) {
+      s = s.replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)).replace(/\u3000/g, ' ');
+    }
+    return s;
+  };
+
+  // 1. 優先檢查是否有 HTML <table> (從網頁或 Word 複製表格貼上時會帶 HTML table)
+  const tables = pasteBox.querySelectorAll('table');
+  if (tables.length > 0) {
+    const rows = [];
+    tables.forEach(tbl => {
+      tbl.querySelectorAll('tr').forEach(tr => {
+        const cells = Array.from(tr.querySelectorAll('th, td')).map(td => sanitize(td.innerText || td.textContent));
+        if (cells.some(c => c !== '')) {
+          rows.push(cells);
+        }
+      });
+    });
+
+    if (rows.length > 0) {
+      const rawHeaders = rows[0];
+      const maxCols = Math.max(...rows.map(r => r.length));
+      const headers = Array.from({ length: maxCols }, (_, i) => (rawHeaders && rawHeaders[i]) ? rawHeaders[i] : `欄位_${i+1}`);
+      const dataObjs = rows.slice(1).map(r => {
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = r[i] ?? '');
+        return obj;
+      });
+      AppState.extractedHeaders = headers;
+      AppState.extractedRows = dataObjs;
+      renderExtractedTable();
+      return;
+    }
+  }
+
+  // 2. 若為純文字：透過複製節點將 <br>、<p>、<div> 轉換為標準換行符號，防止瀏覽器 DOM 吞噬換行
+  const clone = pasteBox.cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  clone.querySelectorAll('p, div, tr').forEach(p => p.after('\n'));
+  const rawText = (clone.textContent || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) {
+    AppState.extractedHeaders = [];
+    AppState.extractedRows = [];
+    renderExtractedTable();
+    return;
+  }
+
+  // 檢查是否包含「キー：値」格式 (例如：申請人：陳建宏 | 項目代碼：CS1001)
+  const kvLines = lines.filter(l => l.includes('：') || l.includes(':'));
+  if (kvLines.length >= 2 && (rawText.includes('|') || rawText.includes('｜') || rawText.includes('；'))) {
+    const headersSet = new Set();
+    const parsedObjs = [];
+    lines.forEach(line => {
+      if (!line.includes('：') && !line.includes(':')) return;
+      const segments = line.split(/[|｜；;]/);
+      const obj = {};
+      segments.forEach(seg => {
+        const m = seg.split(/[:：]/);
+        if (m.length >= 2) {
+          const k = sanitize(m[0]);
+          const v = sanitize(m.slice(1).join(':'));
+          if (k) {
+            headersSet.add(k);
+            obj[k] = v;
+          }
+        }
+      });
+      if (Object.keys(obj).length > 0) parsedObjs.push(obj);
+    });
+    if (parsedObjs.length > 0) {
+      AppState.extractedHeaders = Array.from(headersSet);
+      AppState.extractedRows = parsedObjs;
+      renderExtractedTable();
+      return;
+    }
+  }
+
+  // 3. 一般分隔符號 (Tab, 逗號, 或 2 個以上空白)
+  const splitRows = lines.map(line => {
+    if (line.includes('\t')) return line.split('\t').map(sanitize);
+    if (line.includes(',')) return line.split(',').map(sanitize);
+    return line.split(/\s{2,}/).map(sanitize);
+  });
+
+  const rawHeaders = splitRows[0];
+  const maxCols = Math.max(...splitRows.map(r => r.length));
+  const headers = Array.from({ length: maxCols }, (_, i) => (rawHeaders && rawHeaders[i]) ? rawHeaders[i] : `欄位_${i+1}`);
+
+  const dataObjs = splitRows.slice(1).map(r => {
+    const o = {};
+    headers.forEach((h, i) => o[h] = r[i] ?? '');
+    return o;
+  });
+
+  AppState.extractedHeaders = headers;
+  AppState.extractedRows = dataObjs;
+  renderExtractedTable();
+}
+
+function renderExtractedTable() {
+  const thead = document.getElementById('ext-thead');
+  const tbody = document.getElementById('ext-tbody');
+  const countBadge = document.getElementById('ext-count-badge');
+
+  const headers = AppState.extractedHeaders;
+  const rows = AppState.extractedRows;
+  countBadge.textContent = `共擷取 ${rows.length} 筆資料、${headers.length} 個欄位`;
+
+  if (!headers.length) {
+    thead.innerHTML = '';
+    tbody.innerHTML = `<tr><td style="text-align:center;padding:30px;color:#64748b;">尚無資料，請在上方貼上網頁表格、Word 表格或公文清單</td></tr>`;
+    return;
+  }
+
+  thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+  tbody.innerHTML = rows.map((r, rIdx) => `
+    <tr>
+      ${headers.map(h => `<td contenteditable="true" onblur="updateExtractedCell(${rIdx}, '${h}', this.innerText)">${r[h] ?? ''}</td>`).join('')}
+    </tr>
+  `).join('');
+}
+
+function updateExtractedCell(rowIdx, colName, val) {
+  if (AppState.extractedRows[rowIdx]) {
+    AppState.extractedRows[rowIdx][colName] = val.trim();
+  }
+}
+
+function exportExtractedExcel() {
+  if (!AppState.extractedRows.length) {
+    alert('目前沒有可匯出的資料！');
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(AppState.extractedRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "擷取整理資料");
+  XLSX.writeFile(wb, `網頁Word轉Excel_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('已成功下載乾淨的 Excel 檔案！');
+}
+
+function sendExtractedToDiff(side) {
+  if (!AppState.extractedRows.length) {
+    alert('請先擷取資料後再傳送！');
+    return;
+  }
+  const copy = JSON.parse(JSON.stringify(AppState.extractedRows));
+  if (side === 'A') {
+    AppState.diffDataA = copy;
+    document.getElementById('file-label-a').innerHTML = `✅ 已從擷取器載入 (${copy.length} 筆)`;
+  } else {
+    AppState.diffDataB = copy;
+    document.getElementById('file-label-b').innerHTML = `✅ 已從擷取器載入 (${copy.length} 筆)`;
+  }
+  updateKeyColumnSelector();
+  showToast(`已將擷取表格送入「雙 Excel 比對器」檔案 ${side}！`);
+}
+
+// ============================================================================
+// 模組 3：辦公室例行事務（排程/場地衝突檢測、工時統計、資產用品盤點）
+// ============================================================================
+function initCourseOps() {
+  AppState.scheduleRows = JSON.parse(JSON.stringify(DemoData.scheduleCheckSample));
+  AppState.inventoryRows = JSON.parse(JSON.stringify(DemoData.inventorySample));
+  analyzeScheduleAndHours();
+  renderInventoryTable();
+}
+
+function handleScheduleUpload(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, { type: 'array' });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+    AppState.scheduleRows = rows;
+    analyzeScheduleAndHours();
+    showToast(`已匯入排程/工時資料共 ${rows.length} 筆，並完成衝突檢測與工時核算！`);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// 拆解「一234」或「二345」為 ['一-2', '一-3', '一-4']
+function expandTimeSlots(timeStr) {
+  const s = String(timeStr || '').trim();
+  if (!s) return [];
+  const dayMatch = s.match(/^[一二三四五六日]/);
+  if (!dayMatch) return [s];
+  const day = dayMatch[0];
+  const periods = s.slice(1).split('');
+  return periods.map(p => `${day}-${p}`);
+}
+
+function analyzeScheduleAndHours() {
+  const rows = AppState.scheduleRows;
+  const roomSlotMap = new Map();
+  const teacherSlotMap = new Map();
+  const conflicts = [];
+
+  rows.forEach(r => {
+    const slots = expandTimeSlots(r["上課時間"]);
+    const room = r["場地會議室"];
+    const teacher = r["負責人員"];
+
+    slots.forEach(slot => {
+      const parts = slot.split('-');
+      const day = parts[0] || '';
+      const period = parts[1] || '';
+
+      // 檢查場地衝突
+      const roomKey = `${room}@${slot}`;
+      if (room && roomSlotMap.has(roomKey)) {
+        const prev = roomSlotMap.get(roomKey);
+        if (prev["項目代碼"] !== r["項目代碼"]) {
+          const coursesKey = [prev["項目代碼"], r["項目代碼"]].sort().join('_');
+          conflicts.push({
+            type: '場地衝突',
+            targetKey: `${room}__${coursesKey}`,
+            targetName: room,
+            day: day,
+            period: period,
+            prev: prev,
+            curr: r
+          });
+        }
+      } else if (room) {
+        roomSlotMap.set(roomKey, r);
+      }
+
+      // 檢查人員衝突
+      const teacherKey = `${teacher}@${slot}`;
+      if (teacher && teacherSlotMap.has(teacherKey)) {
+        const prev = teacherSlotMap.get(teacherKey);
+        if (prev["項目代碼"] !== r["項目代碼"]) {
+          const coursesKey = [prev["項目代碼"], r["項目代碼"]].sort().join('_');
+          conflicts.push({
+            type: '人員衝突',
+            targetKey: `${teacher}__${coursesKey}`,
+            targetName: `${teacher} 老師`,
+            day: day,
+            period: period,
+            prev: prev,
+            curr: r
+          });
+        }
+      } else if (teacher) {
+        teacherSlotMap.set(teacherKey, r);
+      }
+    });
+  });
+
+  // 聚合相同衝突群組 (同一星期幾、同一對象、相同課程之連續或離散多節排程衝突聚合)
+  const aggregated = new Map();
+  conflicts.forEach(c => {
+    const groupKey = `${c.type}__${c.targetKey}__${c.day}`;
+    if (!aggregated.has(groupKey)) {
+      aggregated.set(groupKey, {
+        type: c.type,
+        targetName: c.targetName,
+        day: c.day,
+        periods: [],
+        prev: c.prev,
+        curr: c.curr
+      });
+    }
+    aggregated.get(groupKey).periods.push(c.period);
+  });
+
+  const conflictList = Array.from(aggregated.values());
+
+  // 渲染排程衝突報告
+  const conflictBody = document.getElementById('conflict-tbody');
+  document.getElementById('conflict-count').textContent = conflictList.length;
+  if (!conflictList.length) {
+    conflictBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#16a34a;padding:18px;font-weight:700;">🎉 太棒了！目前排程無任何場地或人員衝突！</td></tr>`;
+  } else {
+    conflictBody.innerHTML = conflictList.map(g => `
+      <tr class="diff-removed">
+        <td><span class="pill pill-removed">⚠️ ${g.type}</span></td>
+        <td>
+          <strong>${g.targetName}</strong>
+          <div style="font-size:0.78rem;color:#b91c1c;margin-top:2px;">星期${g.day} 第 ${g.periods.sort().join('、')} 節</div>
+        </td>
+        <td>
+          【${g.prev["項目代碼"]} ${g.prev["任務名稱"]} (${g.type === '場地衝突' ? g.prev["負責人員"] : g.prev["場地會議室"]})】與
+          【${g.curr["項目代碼"]} ${g.curr["任務名稱"]} (${g.type === '場地衝突' ? g.curr["負責人員"] : g.curr["場地會議室"]})】同時排定
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // 核算人員工時/津貼（基本標準時數規則：教授/主管 8、副教授/副理 9、助理教授 9、講師/專員 10）
+  const baseHoursRule = { '教授': 8, '副教授': 9, '助理教授': 9, '講師': 10, '經理': 8, '主管': 8, '工程師': 8, '專員': 8 };
+  const teacherStats = new Map();
+
+  rows.forEach(r => {
+    const name = r["負責人員"];
+    if (!name) return;
+    if (!teacherStats.has(name)) {
+      const title = r["職稱"] || '教授';
+      teacherStats.set(name, {
+        name,
+        title,
+        baseHours: baseHoursRule[title] ?? 8,
+        reduction: Number(r["減免時數"] || 0),
+        totalHours: 0,
+        courses: []
+      });
+    }
+    const st = teacherStats.get(name);
+    const hrs = Number(r["時數"] || 0);
+    st.totalHours += hrs;
+    st.courses.push(`${r["任務名稱"]}(${hrs}h)`);
+  });
+
+  const hoursBody = document.getElementById('hours-tbody');
+  hoursBody.innerHTML = Array.from(teacherStats.values()).map(t => {
+    const required = Math.max(0, t.baseHours - t.reduction);
+    const overHours = Math.max(0, t.totalHours - required);
+    const underHours = Math.max(0, required - t.totalHours);
+    let statusHtml = `<span class="pill pill-added">符合基準工時</span>`;
+    if (overHours > 0) statusHtml = `<span class="pill pill-modified">超額工時 +${overHours} 時</span>`;
+    if (underHours > 0) statusHtml = `<span class="pill pill-removed">不足基本 -${underHours} 時</span>`;
+
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td>${t.title}</td>
+      <td>${t.baseHours}</td>
+      <td>${t.reduction}</td>
+      <td><strong>${required}</strong></td>
+      <td style="font-weight:700;color:#1e40af;">${t.totalHours}</td>
+      <td>${statusHtml}</td>
+      <td style="font-size:0.8rem;color:#475569;">${t.courses.join('、')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInventoryTable() {
+  const filterCat = document.getElementById('inv-filter-cat').value;
+  const tbody = document.getElementById('inv-tbody');
+  const rows = AppState.inventoryRows.filter(r => filterCat === 'all' || r["管理類別"] === filterCat);
+
+  tbody.innerHTML = rows.map((r, idx) => {
+    const isShort = Number(r["實盤數量"]) < Number(r["應有數量"]) || r["狀態"] !== '正常';
+    return `<tr class="${isShort ? 'diff-modified' : ''}">
+      <td>${r["編號"]}</td>
+      <td>${r["管理類別"]}</td>
+      <td><strong>${r["存放地點"]}</strong></td>
+      <td>${r["物品名稱"]}</td>
+      <td>${r["應有數量"]}</td>
+      <td><input type="number" value="${r["實盤數量"]}" style="width:70px;padding:4px 8px;" onchange="updateInvQty(${idx}, this.value)"></td>
+      <td><span class="pill ${isShort ? 'pill-modified' : 'pill-added'}">${r["狀態"]}</span></td>
+      <td>${r["保管/檢查人"]}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateInvQty(idx, val) {
+  const item = AppState.inventoryRows[idx];
+  if (!item) return;
+  item["實盤數量"] = Number(val);
+  item["狀態"] = item["實盤數量"] < item["應有數量"] ? '缺件/待補' : '正常';
+  renderInventoryTable();
+  showToast(`已更新「${item["物品名稱"]}」實盤數量！`);
+}
+
+function addInventoryItem() {
+  const loc = document.getElementById('new-inv-loc').value.trim();
+  const name = document.getElementById('new-inv-name').value.trim();
+  const cat = document.getElementById('new-inv-cat').value;
+  const qty = Number(document.getElementById('new-inv-qty').value || 1);
+  const owner = document.getElementById('new-inv-owner').value.trim() || '行政盤點人員';
+
+  if (!loc || !name) {
+    alert('請輸入存放地點/會議室與物品名稱！');
+    return;
+  }
+
+  AppState.inventoryRows.unshift({
+    "編號": `EQ-00${AppState.inventoryRows.length + 1}`,
+    "管理類別": cat,
+    "存放地點": loc,
+    "物品名稱": name,
+    "應有數量": qty,
+    "實盤數量": qty,
+    "狀態": "正常",
+    "保管/檢查人": owner,
+    "最後檢查日": new Date().toISOString().slice(0, 10)
+  });
+
+  document.getElementById('new-inv-loc').value = '';
+  document.getElementById('new-inv-name').value = '';
+  renderInventoryTable();
+  showToast(`已新增資產/行政用品：${name}`);
+}
+
+function exportInventoryExcel() {
+  const ws = XLSX.utils.json_to_sheet(AppState.inventoryRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "辦公室資產與用品清冊");
+  XLSX.writeFile(wb, `辦公室_資產與用品盤點表_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('已匯出辦公室資產與用品盤點 Excel！');
+}
+
+// ============================================================================
+// 模組 4：Wand.Tools 風格 Excel 公式與資料魔杖
+// ============================================================================
+function renderFormulaCards(query = '') {
+  const q = query.trim().toLowerCase();
+  const list = DemoData.formulaTemplates.filter(item => {
+    if (!q) return true;
+    return item.title.toLowerCase().includes(q) ||
+           item.desc.toLowerCase().includes(q) ||
+           item.category.toLowerCase().includes(q) ||
+           item.tags.some(t => t.toLowerCase().includes(q));
+  });
+
+  const container = document.getElementById('formula-cards-container');
+  container.innerHTML = list.map((item, i) => `
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span class="pill pill-same">${item.category}</span>
+        <span style="font-size:0.78rem;color:#64748b;">支援 Excel / Google 試算表</span>
+      </div>
+      <h4 style="font-size:1rem;margin-bottom:4px;color:#0f172a;">${item.title}</h4>
+      <p style="font-size:0.85rem;color:#475569;margin-bottom:8px;">${item.desc}</p>
+      <div class="formula-box">
+        <code id="formula-code-${i}">${item.formula}</code>
+        <button class="btn btn-sm btn-primary" onclick="copyText('${item.formula.replace(/'/g, "\\'")}')">📋 複製公式</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function generateCustomFormula() {
+  const colMatch = document.getElementById('wand-col-lookup').value || 'A2';
+  const sheetName = document.getElementById('wand-sheet-name').value || '工作排程總表';
+  const colReturn = document.getElementById('wand-col-return').value || 'F:F';
+  const taskType = document.getElementById('wand-task-type').value;
+
+  let formula = '';
+  let explain = '';
+
+  if (taskType === 'xlookup') {
+    formula = `=XLOOKUP(${colMatch}, ${sheetName}!A:A, ${sheetName}!${colReturn}, "查無資料")`;
+    explain = `在「${sheetName}」的 A 欄尋找 ${colMatch}，找到後傳回對應的 ${colReturn} 欄內容；若找不到則顯示「查無資料」。`;
+  } else if (taskType === 'countif') {
+    formula = `=IF(COUNTIF(${sheetName}!A:A, ${colMatch})>0, "已存在", "缺少/新增")`;
+    explain = `檢查 ${colMatch} 是否存在於「${sheetName}」的 A 欄中，常用於兩份排程或人員清冊核對。`;
+  } else if (taskType === 'sumifs') {
+    formula = `=SUMIFS(${sheetName}!${colReturn}, ${sheetName}!A:A, ${colMatch})`;
+    explain = `將「${sheetName}」中所有符合 ${colMatch}（例如同一位老師或同一系所）的 ${colReturn} 欄數值（如工時時數、鐘點費）自動加總。`;
+  } else if (taskType === 'clean') {
+    formula = `=TRIM(CLEAN(SUBSTITUTE(${colMatch}, CHAR(160), " ")))`;
+    explain = `徹底清除 ${colMatch} 儲存格中從網頁或 Word 複製帶來的不換行空白與隱藏控制字元。`;
+  }
+
+  document.getElementById('custom-formula-output').textContent = formula;
+  document.getElementById('custom-formula-explain').textContent = explain;
+  showToast('🪄 已根據您的欄位參數自動生成專屬 Excel 公式！');
+}
+
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    showToast(`已複製到剪貼簿：${txt}`);
+  });
+}
+
+function setupDropzone(dropzoneEl, onFileDrop) {
+  if (!dropzoneEl) return;
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzoneEl.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzoneEl.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzoneEl.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzoneEl.classList.remove('dragover');
+    });
+  });
+  dropzoneEl.addEventListener('drop', e => {
+    const dt = e.dataTransfer;
+    if (dt && dt.files && dt.files.length > 0) {
+      onFileDrop(dt.files[0]);
+    }
+  });
+}
+
+// 初始化綁定
+window.addEventListener('DOMContentLoaded', () => {
+  // 嘗試還原使用者上次未完成的工作階段，若無則載入預設範例
+  const hasRestored = restoreWorkspaceFromLocal();
+  if (!hasRestored) {
+    loadDemoDiff();
+    loadExtractDemo('html');
+    initCourseOps();
+  }
+  renderFormulaCards();
+  generateCustomFormula();
+
+  // 綁定檔案拖曳上傳 (Drag and Drop)
+  setupDropzone(document.getElementById('dropzone-a'), file => handleFileUpload(file, 'A'));
+  setupDropzone(document.getElementById('dropzone-b'), file => handleFileUpload(file, 'B'));
+  setupDropzone(document.querySelector('label[for="upload-excel-a"]'), file => handleFileUpload(file, 'A'));
+  setupDropzone(document.querySelector('label[for="upload-excel-b"]'), file => handleFileUpload(file, 'B'));
+
+  // 綁定貼上區即時解析 (直接擷取剪貼簿純文字與 HTML 表格)
+  const pasteBox = document.getElementById('rich-paste-box');
+  if (pasteBox) {
+    pasteBox.addEventListener('paste', e => {
+      setTimeout(parsePastedContent, 60);
+    });
+    pasteBox.addEventListener('input', () => {
+      parsePastedContent();
+    });
+  }
+});
+
+// ============================================================================
+// 模組 5：Google Drive 雲端匯入 & 跨地移動辦公 (在家 / 機構辦公室 / 公司) 同步引擎
+// ============================================================================
+const STORAGE_KEY = 'OFFICE_EXCEL_TOOLKIT_WORKSPACE_V1';
+
+// 自動儲存工作階段至本機 localStorage (重新整理或離線不遺失)
+function saveWorkspaceToLocal(silent = true) {
+  try {
+    const payload = {
+      updatedAt: new Date().toISOString(),
+      diffDataA: AppState.diffDataA,
+      diffDataB: AppState.diffDataB,
+      extractedHeaders: AppState.extractedHeaders,
+      extractedRows: AppState.extractedRows,
+      scheduleRows: AppState.scheduleRows,
+      inventoryRows: AppState.inventoryRows,
+      gdriveScriptUrl: localStorage.getItem('GDRIVE_APPS_SCRIPT_URL') || ''
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    const timeStr = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+    const statusEl = document.getElementById('sync-status-text');
+    if (statusEl) {
+      statusEl.textContent = `已自動儲存本機進度 (${timeStr})`;
+    }
+    if (!silent) showToast('💾 工作台進度已儲存！');
+  } catch (e) {
+    console.warn('儲存工作區失敗:', e);
+  }
+}
+
+// 載入上次儲存的工作區
+function restoreWorkspaceFromLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.diffDataA?.length || data.diffDataB?.length) {
+      AppState.diffDataA = data.diffDataA || [];
+      AppState.diffDataB = data.diffDataB || [];
+      document.getElementById('file-label-a').innerHTML = `✅ 已還原上次檔案 A (${AppState.diffDataA.length} 筆)`;
+      document.getElementById('file-label-b').innerHTML = `✅ 已還原上次檔案 B (${AppState.diffDataB.length} 筆)`;
+      updateKeyColumnSelector();
+      runExcelDiff();
+    }
+    if (data.extractedRows?.length) {
+      AppState.extractedHeaders = data.extractedHeaders || [];
+      AppState.extractedRows = data.extractedRows || [];
+      renderExtractedTable();
+    }
+    if (data.scheduleRows?.length) {
+      AppState.scheduleRows = data.scheduleRows;
+      analyzeScheduleAndHours();
+    }
+    if (data.inventoryRows?.length) {
+      AppState.inventoryRows = data.inventoryRows;
+      renderInventoryTable();
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// 匯出完整移動辦公快照檔 (.json) — 可放入 Google Drive 雲端硬碟資料夾跨電腦接續工作
+function exportWorkspaceSnapshot() {
+  const payload = {
+    version: '1.2.0',
+    exportedAt: new Date().toISOString(),
+    note: '辦公室萬能工具箱 移動辦公雲端快照檔 (可放於 Google Drive 在家/辦公室/差旅跨裝置載入)',
+    diffDataA: AppState.diffDataA,
+    diffDataB: AppState.diffDataB,
+    extractedHeaders: AppState.extractedHeaders,
+    extractedRows: AppState.extractedRows,
+    scheduleRows: AppState.scheduleRows,
+    inventoryRows: AppState.inventoryRows
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `辦公室工作台快照_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('☁️ 已匯出「移動辦公快照檔」，可放進 Google Drive 隨時跨地點載入！');
+}
+
+// 匯入移動辦公快照檔 (.json)
+function importWorkspaceSnapshot(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      applyWorkspacePayload(data);
+      saveWorkspaceToLocal(true);
+      showToast(`🎉 已成功還原工作台快照 (${file.name})！所有比對、排程表與盤點資料皆已就緒。`);
+    } catch (err) {
+      alert('快照檔案格式不正確，請選擇有效的 .json 工作台快照檔！');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function applyWorkspacePayload(data) {
+  if (data.diffDataA) AppState.diffDataA = data.diffDataA;
+  if (data.diffDataB) AppState.diffDataB = data.diffDataB;
+  if (AppState.diffDataA.length || AppState.diffDataB.length) {
+    document.getElementById('file-label-a').innerHTML = `✅ 雲端快照檔案 A (${AppState.diffDataA.length} 筆)`;
+    document.getElementById('file-label-b').innerHTML = `✅ 雲端快照檔案 B (${AppState.diffDataB.length} 筆)`;
+    updateKeyColumnSelector();
+    runExcelDiff();
+  }
+  if (data.extractedHeaders && data.extractedRows) {
+    AppState.extractedHeaders = data.extractedHeaders;
+    AppState.extractedRows = data.extractedRows;
+    renderExtractedTable();
+  }
+  if (data.scheduleRows) {
+    AppState.scheduleRows = data.scheduleRows;
+    analyzeScheduleAndHours();
+  }
+  if (data.inventoryRows) {
+    AppState.inventoryRows = data.inventoryRows;
+    renderInventoryTable();
+  }
+}
+
+// 解析 Google Sheets / Google Drive 網址或檔案 ID，轉為可直接讀取的匯出連結
+function extractGoogleFileId(urlOrId) {
+  const s = String(urlOrId || '').trim();
+  if (!s) return null;
+  const matchD = s.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
+  if (matchD) return matchD[1];
+  const matchId = s.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
+  if (matchId) return matchId[1];
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(s)) return s;
+  return null;
+}
+
+// 從 Google Drive / Google 試算表網址直接匯入資料
+async function importFromGoogleDriveUrl(targetModule) {
+  let inputId = '';
+  if (targetModule === 'diff-A') inputId = 'gdrive-url-diff-a';
+  else if (targetModule === 'diff-B') inputId = 'gdrive-url-diff-b';
+  else if (targetModule === 'extract') inputId = 'gdrive-url-extract';
+  else if (targetModule === 'schedule') inputId = 'gdrive-url-schedule';
+
+  const rawUrl = document.getElementById(inputId)?.value.trim();
+  if (!rawUrl) {
+    alert('請貼上 Google 試算表 (Google Sheets) 或 Google Drive 分享連結！');
+    return;
+  }
+
+  const fileId = extractGoogleFileId(rawUrl);
+  // 擷取 gid (若連結內指定了特定工作表分頁)
+  const gidMatch = rawUrl.match(/[#&?]gid=([0-9]+)/);
+  const gidParam = gidMatch ? `&gid=${gidMatch[1]}` : '';
+
+  // 構造讀取候選清單 (優先嘗試 Google Sheets xlsx / csv 匯出端點)
+  const candidateUrls = [];
+  if (fileId) {
+    candidateUrls.push(`https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx${gidParam}`);
+    candidateUrls.push(`https://docs.google.com/spreadsheets/d/${fileId}/export?format=csv${gidParam}`);
+    candidateUrls.push(`https://docs.google.com/document/d/${fileId}/export?format=txt`);
+  } else {
+    candidateUrls.push(rawUrl);
+  }
+
+  showToast('☁️ 正在從 Google Drive 讀取雲端資料...');
+
+  let loadedBuffer = null;
+  for (const url of candidateUrls) {
+    try {
+      const resp = await fetch(url);
+      if (resp.ok) {
+        loadedBuffer = await resp.arrayBuffer();
+        break;
+      }
+    } catch (e) {
+      // 繼續嘗試下一個端點
+    }
+  }
+
+  if (!loadedBuffer) {
+    alert(
+      '⚠️ 無法直接讀取該 Google Drive 連結。\n\n' +
+      '請確認：\n' +
+      '1. 該 Google 試算表已設定為「知道連結的任何人都能檢視」；或\n' +
+      '2. 若為私人檔案，您可以在電腦安裝 Google 雲端硬碟桌面版 (G: 槽)，直接從檔案選擇器選取 Google Drive 資料夾內的檔案！'
+    );
+    return;
+  }
+
+  try {
+    const data = new Uint8Array(loadedBuffer);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const firstSheet = workbook.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { defval: "" });
+
+    if (!rows.length) {
+      alert('已連線至 Google 檔案，但內容似乎是空的！');
+      return;
+    }
+
+    if (targetModule === 'diff-A') {
+      AppState.diffDataA = rows;
+      document.getElementById('file-label-a').innerHTML = `☁️ 已從 Google Drive 載入 (${rows.length} 筆)`;
+      updateKeyColumnSelector();
+      runExcelDiff();
+    } else if (targetModule === 'diff-B') {
+      AppState.diffDataB = rows;
+      document.getElementById('file-label-b').innerHTML = `☁️ 已從 Google Drive 載入 (${rows.length} 筆)`;
+      updateKeyColumnSelector();
+      runExcelDiff();
+    } else if (targetModule === 'extract') {
+      AppState.extractedHeaders = Object.keys(rows[0]);
+      AppState.extractedRows = rows;
+      renderExtractedTable();
+    } else if (targetModule === 'schedule') {
+      AppState.scheduleRows = rows;
+      analyzeScheduleAndHours();
+    }
+
+    saveWorkspaceToLocal(true);
+    showToast(`✅ 成功從 Google Drive 匯入 ${rows.length} 筆資料！`);
+  } catch (err) {
+    alert('解析雲端檔案失敗，請確認連結是否為 Google 試算表或 Excel/CSV 檔案。');
+  }
+}
+
+// 開關雲端移動辦公設定彈窗
+function toggleCloudModal(open) {
+  const modal = document.getElementById('cloud-modal');
+  if (!modal) return;
+  if (open) {
+    document.getElementById('gas-webapp-url').value = localStorage.getItem('GDRIVE_APPS_SCRIPT_URL') || '';
+    modal.classList.add('open');
+  } else {
+    modal.classList.remove('open');
+  }
+}
+
+// 開關版本歷程彈窗
+function toggleChangelogModal(open) {
+  const modal = document.getElementById('changelog-modal');
+  if (!modal) return;
+  if (open) {
+    modal.classList.add('open');
+  } else {
+    modal.classList.remove('open');
+  }
+}
+
+// 使用 Google Apps Script Web App 儲存/讀取私人 Google Drive 進度 (免設公開權限)
+async function syncWithGoogleAppsScript(mode) {
+  const url = document.getElementById('gas-webapp-url').value.trim();
+  if (!url) {
+    alert('請先填入您的 Google Apps Script 網址，或直接使用左側「匯出/載入雲端快照檔 (.json)」放入 Google Drive！');
+    return;
+  }
+  localStorage.setItem('GDRIVE_APPS_SCRIPT_URL', url);
+
+  try {
+    if (mode === 'push') {
+      showToast('☁️ 正在備份工作台資料至您的 Google Drive...');
+      const payload = {
+        action: 'save',
+        updatedAt: new Date().toISOString(),
+        diffDataA: AppState.diffDataA,
+        diffDataB: AppState.diffDataB,
+        extractedHeaders: AppState.extractedHeaders,
+        extractedRows: AppState.extractedRows,
+        scheduleRows: AppState.scheduleRows,
+        inventoryRows: AppState.inventoryRows
+      };
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      showToast('✅ 已發送雲端備份至您的 Google Drive！');
+    } else {
+      showToast('☁️ 正在從您的 Google Drive 拉取最新進度...');
+      const resp = await fetch(`${url}?action=load`);
+      const data = await resp.json();
+      applyWorkspacePayload(data);
+      saveWorkspaceToLocal(true);
+      showToast('🎉 已從 Google Drive 同步最新工作台資料！');
+    }
+  } catch (e) {
+    alert('連線至 Google Apps Script 失敗，請檢查網址是否正確且已部署為「所有人可存取」。');
+  }
+}
+
+</script>
+</body>
+</html>

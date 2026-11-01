@@ -1,0 +1,20 @@
+{
+  "name": "course-office-toolkit",
+  "version": "1.0.0",
+  "description": "辦公室通用 Excel 萬能工具箱 (Universal Office Excel Toolkit)",
+  "main": "index.js",
+  "scripts": {
+    "test": "node scripts/test_suite.js",
+    "generate-excel": "node scripts/generate_test_excel.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhijaysun0915/course-office-toolkit.git"
+  },
+  "keywords": ["excel", "diff", "office-automation", "schedule-conflict", "inventory-management", "google-drive"],
+  "author": "zhijaysun",
+  "license": "MIT",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}
